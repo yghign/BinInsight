@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BinInsight · Vercel 部署指南</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --dim: #8b949e;
+    --blue: #58a6ff;
+    --green: #3fb950;
+    --orange: #d29922;
+    --purple: #bc8cff;
+    --red: #f85149;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+  .container { max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  .hero {
+    text-align: center;
+    padding: 40px 0 50px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .hero .badge {
+    display: inline-block;
+    padding: 4px 14px;
+    background: rgba(88,166,255,0.1);
+    border: 1px solid rgba(88,166,255,0.3);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--blue);
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: 2.2em;
+    font-weight: 800;
+    background: linear-gradient(135deg, #58a6ff, #bc8cff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  .hero p { color: var(--dim); font-size: 1.05em; }
+
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 48px;
+  }
+  .toc h3 { font-size: 0.9em; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .toc ol { list-style: none; counter-reset: toc; }
+  .toc li { counter-increment: toc; padding: 4px 0; }
+  .toc li::before { content: counter(toc) ". "; color: var(--blue); font-weight: 600; }
+  .toc a { color: var(--text); text-decoration: none; }
+  .toc a:hover { color: var(--blue); }
+
+  .section { margin-bottom: 56px; }
+  .section h2 {
+    font-size: 1.6em;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section h2 .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--blue);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 0.7em;
+    font-weight: 800;
+  }
+  .section h3 {
+    font-size: 1.15em;
+    font-weight: 600;
+    margin: 24px 0 12px;
+    color: var(--text);
+  }
+  .section p { color: var(--dim); margin-bottom: 12px; }
+  .section strong { color: var(--text); }
+
+  .step-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    position: relative;
+  }
+  .step-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--blue);
+    border-radius: 10px 0 0 10px;
+  }
+  .step-card h4 {
+    font-size: 1em;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .step-card p { color: var(--dim); font-size: 0.95em; margin-bottom: 8px; }
+
+  code.inline {
+    background: rgba(88,166,255,0.12);
+    color: #93c5fd;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 0.88em;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+  }
+
+  .code-block {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+    color: #c9d1d9;
+  }
+  .code-block .comment { color: #8b949e; font-style: italic; }
+  .code-block .cmd { color: #79c0ff; }
+  .code-block .path { color: #a5d6ff; }
+  .code-block .success { color: #3fb950; }
+
+  .tip-box {
+    background: rgba(63,185,80,0.08);
+    border: 1px solid rgba(63,185,80,0.25);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .tip-box h4 { color: var(--green); font-size: 0.95em; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .tip-box p { color: var(--dim); font-size: 0.92em; margin: 0; }
+
+  .warn-box {
+    background: rgba(210,153,34,0.08);
+    border: 1px solid rgba(210,153,34,0.25);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .warn-box h4 { color: var(--orange); font-size: 0.95em; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .warn-box p { color: var(--dim); font-size: 0.92em; margin: 0; }
+
+  .faq-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 10px 0;
+  }
+  .faq-item h4 { color: var(--text); font-size: 0.98em; margin-bottom: 6px; }
+  .faq-item p { color: var(--dim); font-size: 0.92em; margin: 0; }
+
+  .screenshot {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
+    text-align: center;
+  }
+  .screenshot .placeholder {
+    background: #0a0d12;
+    border: 2px dashed var(--border);
+    border-radius: 6px;
+    padding: 30px;
+    color: var(--dim);
+    font-size: 0.9em;
+  }
+
+  ul.bullet { margin: 10px 0 10px 20px; color: var(--dim); }
+  ul.bullet li { margin-bottom: 6px; }
+  ul.bullet li strong { color: var(--text); }
+
+  .checklist { list-style: none; margin: 10px 0; }
+  .checklist li {
+    padding: 5px 0 5px 28px;
+    position: relative;
+    color: var(--dim);
+  }
+  .checklist li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+    font-weight: bold;
+  }
+
+  .footer-note {
+    text-align: center;
+    padding-top: 32px;
+    margin-top: 40px;
+    border-top: 1px solid var(--border);
+    color: var(--dim);
+    font-size: 0.88em;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="hero">
+    <div class="badge">🚀 部署指南</div>
+    <h1>BinInsight Vercel 部署手册</h1>
+    <p>从零开始，5 分钟把你的网站发布到公网，任何人都能通过网址访问</p>
+  </div>
+
+  <div class="toc">
+    <h3>📋 目录</h3>
+    <ol>
+      <li><a href="#s1">准备工作：你需要什么</a></li>
+      <li><a href="#s2">第一步：把代码推到 GitHub</a></li>
+      <li><a href="#s3">第二步：注册 Vercel 并导入项目</a></li>
+      <li><a href="#s4">第三步：配置并部署</a></li>
+      <li><a href="#s5">第四步：绑定自定义域名（可选）</a></li>
+      <li><a href="#s6">后续：如何更新网站</a></li>
+      <li><a href="#s7">常见问题 FAQ</a></li>
+      <li><a href="#s8">其他部署方式对比</a></li>
+    </ol>
+  </div>
+
+  <!-- Section 1 -->
+  <div class="section" id="s1">
+    <h2><span class="num">0</span>准备工作</h2>
+    <p>在开始之前，请确保你有以下三样东西：</p>
+    <ul class="checklist">
+      <li><strong>一个 GitHub 账号</strong>（免费注册：<a href="https://github.com/signup" style="color:var(--blue)">github.com/signup</a>）</li>
+      <li><strong>BinInsight 项目代码</strong>（在你的 D:\bininsight 目录里）</li>
+      <li><strong>Git 工具</strong>（如果没装，去 <a href="https://git-scm.com/" style="color:var(--blue)">git-scm.com</a> 下载安装）</li>
+    </ul>
+
+    <div class="tip-box">
+      <h4>💡 为什么用 Vercel？</h4>
+      <p>Vercel 是 Next.js 的官方托管平台，对 Next.js 项目有最好的支持。免费额度足够个人项目使用，全球 CDN 加速，推送代码自动部署。</p>
+    </div>
+  </div>
+
+  <!-- Section 2 -->
+  <div class="section" id="s2">
+    <h2><span class="num">1</span>把代码推到 GitHub</h2>
+    <p>Vercel 需要从 GitHub 拉取代码来构建。所以第一步是把本地项目上传到 GitHub 仓库。</p>
+
+    <h3>1.1 在 GitHub 上创建新仓库</h3>
+    <div class="step-card">
+      <h4>步骤 ①：新建仓库</h4>
+      <p>登录 GitHub 后，点击右上角的 <code class="inline">+</code> → <code class="inline">New repository</code></p>
+    </div>
+    <div class="step-card">
+      <h4>步骤 ②：填写仓库信息</h4>
+      <ul class="bullet">
+        <li><strong>Repository name</strong>：填 <code class="inline">bininsight</code>（或你喜欢的名字）</li>
+        <li><strong>Description</strong>：可选，比如 "逆向工程与漏洞防护学习平台"</li>
+        <li><strong>Public / Private</strong>：选 Public（免费版 Vercel 也支持 Private 仓库）</li>
+        <li><strong>不要勾选</strong> "Initialize this repository with a README"</li>
+        <li>点击 <strong>Create repository</strong></li>
+      </ul>
+    </div>
+
+    <h3>1.2 本地初始化 Git 并推送</h3>
+    <p>打开 PowerShell 或终端，进入项目目录：</p>
+
+    <div class="code-block">
+<span class="comment"># 进入项目目录</span>
+<span class="cmd">cd</span> D:\bininsight
+
+<span class="comment"># 初始化 Git 仓库（如果还没有）</span>
+<span class="cmd">git</span> init
+
+<span class="comment"># 设置你的名字和邮箱（第一次用 Git 需要）</span>
+<span class="cmd">git</span> config user.name <span style="color:#a5d6ff">"你的名字"</span>
+<span class="cmd">git</span> config user.email <span style="color:#a5d6ff">"你的邮箱@example.com"</span>
+
+<span class="comment"># 添加所有文件</span>
+<span class="cmd">git</span> add .
+
+<span class="comment"># 提交</span>
+<span class="cmd">git</span> commit -m <span style="color:#a5d6ff">"Initial commit"</span>
+
+<span class="comment"># 关联到 GitHub 仓库（把下面的地址换成你自己的）</span>
+<span class="cmd">git</span> branch -M main
+<span class="cmd">git</span> remote add origin https:<span style="color:#8b949e">//github.com/</span><span style="color:#ff7b72">你的用户名</span><span style="color:#8b949e">/</span>bininsight.git
+
+<span class="comment"># 推送</span>
+<span class="cmd">git</span> push -u origin main
+    </div>
+
+    <div class="warn-box">
+      <h4>⚠️ 注意</h4>
+      <p>推送时会要求输入 GitHub 用户名和密码。注意：现在 GitHub 不支持密码登录了，需要用 <strong>Personal Access Token</strong> 代替密码。生成方法：GitHub 右上角头像 → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token，勾选 repo 权限后生成，复制这个 token 当密码用。</p>
+    </div>
+
+    <div class="tip-box">
+      <h4>✅ 验证</h4>
+      <p>推送成功后，刷新你的 GitHub 仓库页面，应该能看到所有代码文件了。</p>
+    </div>
+  </div>
+
+  <!-- Section 3 -->
+  <div class="section" id="s3">
+    <h2><span class="num">2</span>注册 Vercel 并导入项目</h2>
+
+    <div class="step-card">
+      <h4>步骤 ①：打开 Vercel 官网</h4>
+      <p>访问 <a href="https://vercel.com" style="color:var(--blue)">vercel.com</a>，点击 <strong>Sign Up</strong>（注册）。</p>
+      <p>选择 <strong>"Continue with GitHub"</strong> 用 GitHub 账号直接登录，最方便。</p>
+    </div>
+
+    <div class="step-card">
+      <h4>步骤 ②：授权 GitHub</h4>
+      <p>第一次登录会跳转到 GitHub 授权页面，点击 <strong>Authorize Vercel</strong> 允许 Vercel 访问你的仓库。</p>
+    </div>
+
+    <div class="step-card">
+      <h4>步骤 ③：导入仓库</h4>
+      <p>登录后进入 Vercel 控制台，点击 <strong>Add New...</strong> → <strong>Project</strong></p>
+      <p>在 "Import Git Repository" 列表中找到你的 <code class="inline">bininsight</code> 仓库，点击旁边的 <strong>Import</strong> 按钮。</p>
+    </div>
+
+    <div class="tip-box">
+      <h4>💡 找不到仓库？</h4>
+      <p>如果列表里没有你的仓库，点击 "Adjust GitHub App Permissions"，给 Vercel 授予对应仓库的访问权限。</p>
+    </div>
+  </div>
+
+  <!-- Section 4 -->
+  <div class="section" id="s4">
+    <h2><span class="num">3</span>配置并部署</h2>
+
+    <div class="step-card">
+      <h4>步骤 ①：配置项目设置</h4>
+      <p>进入部署配置页面后，检查以下设置：</p>
+      <ul class="bullet">
+        <li><strong>Project Name</strong>：自动填的 bininsight，不用改（你的网址会是 <code class="inline">bininsight-xxx.vercel.app</code>）</li>
+        <li><strong>Framework Preset</strong>：应该自动识别为 <strong>Next.js</strong>，如果没有就手动选</li>
+        <li><strong>Root Directory</strong>：保持 <code class="inline">./</code>（因为代码就在仓库根目录）</li>
+        <li><strong>Build and Output Settings</strong>：全部保持默认即可，Vercel 会自动用 <code class="inline">next build</code></li>
+        <li><strong>Environment Variables</strong>：我们的项目不需要环境变量，<strong>留空</strong></li>
+      </ul>
+    </div>
+
+    <div class="step-card">
+      <h4>步骤 ②：点击 Deploy</h4>
+      <p>确认设置无误后，点击底部的 <strong>Deploy</strong> 按钮，开始部署。</p>
+    </div>
+
+    <div class="step-card">
+      <h4>步骤 ③：等待部署完成</h4>
+      <p>部署过程大约 1-2 分钟，你会看到实时构建日志。等出现 <span style="color:var(--green)">"Congratulations!"</span> 就成功了！</p>
+      <p>点击 <strong>Continue to Dashboard</strong> 进入项目面板。</p>
+    </div>
+
+    <div class="tip-box">
+      <h4>🎉 恭喜！</h4>
+      <p>你的网站已经上线了！地址在项目面板的 <strong>Domains</strong> 区域，格式类似 <code class="inline">bininsight-git-main-xxx.vercel.app</code> 或 <code class="inline">bininsight.vercel.app</code>。把这个链接发给任何人，他们都能访问你的网站。</p>
+    </div>
+  </div>
+
+  <!-- Section 5 -->
+  <div class="section" id="s5">
+    <h2><span class="num">4</span>绑定自定义域名（可选）</h2>
+    <p>如果你有自己的域名（比如 <code class="inline">bininsight.cn</code>），可以绑定到 Vercel 上，让网址更专业。</p>
+
+    <div class="step-card">
+      <h4>步骤 ①：在 Vercel 添加域名</h4>
+      <p>项目面板 → <strong>Settings</strong> → <strong>Domains</strong> → 输入你的域名 → 点击 <strong>Add</strong></p>
+    </div>
+
+    <div class="step-card">
+      <h4>步骤 ②：配置 DNS 解析</h4>
+      <p>Vercel 会告诉你需要添加什么 DNS 记录。一般是：</p>
+      <ul class="bullet">
+        <li>在你的域名服务商（阿里云/腾讯云/Cloudflare 等）的 DNS 管理里</li>
+        <li>添加一条 <strong>CNAME 记录</strong>：主机记录填 <code class="inline">www</code>，记录值填 <code class="inline">cname.vercel-dns.com</code></li>
+        <li>或者添加 <strong>A 记录</strong>指向 Vercel 提供的 IP</li>
+      </ul>
+    </div>
+
+    <div class="step-card">
+      <h4>步骤 ③：等待生效</h4>
+      <p>DNS 解析生效需要几分钟到几小时。生效后 Vercel 会自动配置 HTTPS 证书（免费的）。</p>
+    </div>
+  </div>
+
+  <!-- Section 6 -->
+  <div class="section" id="s6">
+    <h2><span class="num">5</span>后续：如何更新网站</h2>
+    <p>部署完成后，更新网站非常简单——<strong>只要往 GitHub 推送代码，Vercel 会自动重新构建部署</strong>。</p>
+
+    <h3>日常更新流程</h3>
+    <div class="code-block">
+<span class="comment"># 1. 改完代码后，提交并推送</span>
+<span class="cmd">git</span> add .
+<span class="cmd">git</span> commit -m <span style="color:#a5d6ff">"更新了XXX内容"</span>
+<span class="cmd">git</span> push
+
+<span class="comment"># 2. Vercel 会自动检测到 push，自动重新构建部署</span>
+<span class="comment"># 3. 等 1-2 分钟，刷新网页就能看到更新了</span>
+    </div>
+
+    <div class="tip-box">
+      <h4>💡 小技巧</h4>
+      <p>在 Vercel 项目面板的 <strong>Deployments</strong> 标签里，可以看到每一次部署的记录和状态。每次 push 都会生成一条新记录，部署失败也能在这里看到错误日志。</p>
+    </div>
+  </div>
+
+  <!-- Section 7 -->
+  <div class="section" id="s7">
+    <h2><span class="num">?</span>常见问题 FAQ</h2>
+
+    <div class="faq-item">
+      <h4>Q：Vercel 免费吗？有什么限制？</h4>
+      <p>个人 Hobby 计划完全免费。限制是：每月 100GB 带宽、无限次部署、100GB 带宽/月。对于学习项目完全够用。如果超出了再考虑升级付费计划。</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q：部署失败了怎么办？</h4>
+      <p>进入 Vercel 项目面板 → Deployments → 点击失败的部署 → 查看 Build Log。常见原因：代码有语法错误、依赖没装好、环境变量缺失。把错误信息复制出来排查。</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q：网站会被搜索引擎收录吗？</h4>
+      <p>会的。Vercel 部署的网站和普通网站一样，可以被 Google、百度等搜索引擎收录。你也可以在项目里加 sitemap 和 robots.txt 来优化 SEO。</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q：能加评论功能或用户系统吗？</h4>
+      <p>可以。评论功能推荐用 Giscus（基于 GitHub Discussions，免费）。用户系统可以用 Vercel 自家的 Auth.js 或第三方服务。我们的项目目前是纯静态的，加这些需要后端支持，但 Vercel 也提供 Serverless Functions。</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q：Git push 时提示 "fatal: remote origin already exists" 怎么办？</h4>
+      <p>说明已经关联过远程仓库了。先用 <code class="inline">git remote remove origin</code> 删除旧的，再重新添加。</p>
+    </div>
+
+    <div class="faq-item">
+      <h4>Q：可以在手机上访问吗？</h4>
+      <p>可以！我们的网站做了响应式设计，手机、平板、电脑都能正常显示。</p>
+    </div>
+  </div>
+
+  <!-- Section 8 -->
+  <div class="section" id="s8">
+    <h2><span class="num">≡</span>其他部署方式对比</h2>
+    <p>除了 Vercel，还有这些常见选择，你可以根据需要挑选：</p>
+
+    <div style="overflow-x:auto;">
+      <table style="width:100%; border-collapse:collapse; margin-top:16px; font-size:0.92em;">
+        <thead>
+          <tr style="background:var(--card);">
+            <th style="padding:12px 14px; border:1px solid var(--border); text-align:left;">平台</th>
+            <th style="padding:12px 14px; border:1px solid var(--border); text-align:left;">免费额度</th>
+            <th style="padding:12px 14px; border:1px solid var(--border); text-align:left;">难度</th>
+            <th style="padding:12px 14px; border:1px solid var(--border); text-align:left;">适合场景</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:10px 14px; border:1px solid var(--border);"><strong style="color:var(--blue)">Vercel</strong></td>
+            <td style="padding:10px 14px; border:1px solid var(--border);">100GB/月带宽，无限部署</td>
+            <td style="padding:10px 14px; border:1px solid var(--border); color:var(--green);">★☆☆ 最简单</td>
+            <td style="padding:10px 14px; border:1px solid var(--border); color:var(--dim);">Next.js 项目首选</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px; border:1px solid var(--border);"><strong>Netlify</strong></td>
+            <td style="padding:10px 14px; border:1px solid var(--border);">100GB/月带宽</td>
+            <td style="padding:10px 14px; border:1px solid var(--border); color:var(--green);">★☆☆ 简单</td>
+            <td style="padding:10px 14px; border:1px solid var(--border); color:var(--dim);">静态网站通用</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px; border:1px solid var(--border);"><strong>GitHub Pages</strong></td>
+            <td style="padding:10px 14px; border:1px solid var(--border);">完全免费</td>
+            <td style="padding:10px 14px; border:1px solid var(--border); color:var(--orange);">★★☆ 中等</td>
+            <td style="padding:10px 14px; border:1px solid var(--border); color:var(--dim);">纯静态页面，需导出</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px; border:1px solid var(--border);"><strong>Cloudflare Pages</strong></td>
+            <td style="padding:10px 14px; border:1px solid var(--border);">无限带宽</td>
+            <td style="padding:10px 14px; border:1px solid var(--border); color:var(--green);">★☆☆ 简单</td>
+            <td style="padding:10px 14px; border:1px solid var(--border); color:var(--dim);">流量大的项目</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 14px; border:1px solid var(--border);"><strong>阿里云/腾讯云</strong></td>
+            <td style="padding:10px 14px; border:1px solid var(--border);">需付费（几十元/月起）</td>
+            <td style="padding:10px 14px; border:1px solid var(--border); color:var(--red);">★★★ 复杂</td>
+            <td style="padding:10px 14px; border:1px solid var(--border); color:var(--dim);">需要完全控制权</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    <p>BinInsight · Vercel 部署指南</p>
+    <p style="margin-top:4px;">遇到问题？先看 FAQ，再检查 Vercel 构建日志</p>
+  </div>
+
+</div>
+
+</body>
+</html>
