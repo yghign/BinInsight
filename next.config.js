@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'export',
-  basePath: '/bininsight',
+  basePath: '/BinInsight',
   images: { unoptimized: true },
 };
 

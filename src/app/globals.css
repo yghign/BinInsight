@@ -4,6 +4,83 @@
 
 :root {
   color-scheme: dark;
+  /* 默认主题：经典蓝 */
+  --brand-50: #eff6ff;
+  --brand-100: #dbeafe;
+  --brand-300: #93c5fd;
+  --brand-400: #60a5fa;
+  --brand-500: #3b82f6;
+  --brand-600: #2563eb;
+  --brand-700: #1d4ed8;
+  --accent-cyan: #22d3ee;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #a855f7;
+}
+
+/* 主题：黑客绿 */
+[data-theme="green"] {
+  --brand-50: #ecfdf5;
+  --brand-100: #d1fae5;
+  --brand-300: #6ee7b7;
+  --brand-400: #34d399;
+  --brand-500: #10b981;
+  --brand-600: #059669;
+  --brand-700: #047857;
+  --accent-cyan: #06b6d4;
+  --accent-green: #22c55e;
+  --accent-orange: #eab308;
+  --accent-red: #f43f5e;
+  --accent-purple: #8b5cf6;
+}
+
+/* 主题：赛博紫 */
+[data-theme="purple"] {
+  --brand-50: #faf5ff;
+  --brand-100: #f3e8ff;
+  --brand-300: #d8b4fe;
+  --brand-400: #c084fc;
+  --brand-500: #a855f7;
+  --brand-600: #9333ea;
+  --brand-700: #7e22ce;
+  --accent-cyan: #06b6d4;
+  --accent-green: #14b8a6;
+  --accent-orange: #f97316;
+  --accent-red: #ef4444;
+  --accent-purple: #ec4899;
+}
+
+/* 主题：橙红烈焰 */
+[data-theme="orange"] {
+  --brand-50: #fff7ed;
+  --brand-100: #ffedd5;
+  --brand-300: #fdba74;
+  --brand-400: #fb923c;
+  --brand-500: #f97316;
+  --brand-600: #ea580c;
+  --brand-700: #c2410c;
+  --accent-cyan: #0ea5e9;
+  --accent-green: #84cc16;
+  --accent-orange: #eab308;
+  --accent-red: #ef4444;
+  --accent-purple: #a855f7;
+}
+
+/* 主题：深邃青 */
+[data-theme="cyan"] {
+  --brand-50: #ecfeff;
+  --brand-100: #cffafe;
+  --brand-300: #67e8f9;
+  --brand-400: #22d3ee;
+  --brand-500: #06b6d4;
+  --brand-600: #0891b2;
+  --brand-700: #0e7490;
+  --accent-cyan: #22d3ee;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-red: #f43f5e;
+  --accent-purple: #8b5cf6;
 }
 
 * {
@@ -121,4 +198,9 @@ code.inline {
 }
 .animate-glow {
   animation: glow 2s ease-in-out infinite;
+}
+
+/* 主题切换过渡 */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
