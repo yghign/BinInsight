@@ -90,58 +90,6 @@ export default function CodeBlock({
           font-size: 13px;
           line-height: 1.65;
         }
-        /* Prism dark theme (default) */
-        :global(.token.comment),
-        :global(.token.prolog),
-        :global(.token.doctype),
-        :global(.token.cdata) {
-          color: #8b949e;
-          font-style: italic;
-        }
-        :global(.token.punctuation) {
-          color: #c9d1d9;
-        }
-        :global(.token.property),
-        :global(.token.tag),
-        :global(.token.boolean),
-        :global(.token.number),
-        :global(.token.constant),
-        :global(.token.symbol) {
-          color: #79c0ff;
-        }
-        :global(.token.selector),
-        :global(.token.attr-name),
-        :global(.token.string),
-        :global(.token.char),
-        :global(.token.builtin),
-        :global(.token.inserted) {
-          color: #a5d6ff;
-        }
-        :global(.token.operator),
-        :global(.token.entity),
-        :global(.token.url) {
-          color: #79c0ff;
-        }
-        :global(.token.atrule),
-        :global(.token.attr-value),
-        :global(.token.keyword) {
-          color: #ff7b72;
-        }
-        :global(.token.function),
-        :global(.token.class-name) {
-          color: #d2a8ff;
-        }
-        :global(.token.regex),
-        :global(.token.important),
-        :global(.token.variable) {
-          color: #ffa657;
-        }
-        :global(.line-numbers .line-numbers-rows) {
-          border-right: 1px solid var(--border);
-        }
-        :global(.line-numbers-rows > span:before) {
-          color: #484f58;
-        }
       `}</style>
     </div>
   );

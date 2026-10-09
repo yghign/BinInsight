@@ -399,7 +399,7 @@ function PatchDiffDemo() {
             <span className="w-2 h-2 rounded-full bg-accent-red" />
             <span className="text-sm font-medium text-accent-red">漏洞版本 (Vulnerable)</span>
           </div>
-          <div className="bg-[#0d1117] border border-border rounded-xl overflow-hidden font-mono text-xs">
+          <div className="bg-[var(--bg-code)] border border-border rounded-xl overflow-hidden font-mono text-xs">
             {vulnLines.map((line, i) => (
               <div
                 key={i}
@@ -408,10 +408,10 @@ function PatchDiffDemo() {
                   diffLinesVuln.has(i) ? 'bg-accent-red/15 border-l-2 border-accent-red' : ''
                 )}
               >
-                <span className="w-6 text-gray-600 text-right pr-3 select-none flex-shrink-0">
+                <span className="w-6 text-[var(--text-soft)] text-right pr-3 select-none flex-shrink-0">
                   {i + 1}
                 </span>
-                <span className="text-gray-300 whitespace-pre">{line || ' '}</span>
+                <span className="text-[var(--text-muted)] whitespace-pre">{line || ' '}</span>
               </div>
             ))}
           </div>
@@ -423,7 +423,7 @@ function PatchDiffDemo() {
             <span className="w-2 h-2 rounded-full bg-accent-green" />
             <span className="text-sm font-medium text-accent-green">补丁版本 (Patched)</span>
           </div>
-          <div className="bg-[#0d1117] border border-border rounded-xl overflow-hidden font-mono text-xs">
+          <div className="bg-[var(--bg-code)] border border-border rounded-xl overflow-hidden font-mono text-xs">
             {patchLines.map((line, i) => (
               <div
                 key={i}
@@ -434,10 +434,10 @@ function PatchDiffDemo() {
                     : ''
                 )}
               >
-                <span className="w-6 text-gray-600 text-right pr-3 select-none flex-shrink-0">
+                <span className="w-6 text-[var(--text-soft)] text-right pr-3 select-none flex-shrink-0">
                   {i + 1}
                 </span>
-                <span className="text-gray-300 whitespace-pre">{line || ' '}</span>
+                <span className="text-[var(--text-muted)] whitespace-pre">{line || ' '}</span>
               </div>
             ))}
           </div>

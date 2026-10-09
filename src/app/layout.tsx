@@ -28,11 +28,14 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('bininsight-theme');
-                  if (theme && theme !== 'blue') {
-                    document.documentElement.setAttribute('data-theme', theme);
-                  }
-                } catch(e) {}
+                  var mode = localStorage.getItem('bininsight-mode') || 'dark';
+                  var accent = localStorage.getItem('bininsight-accent') || 'blue';
+                  document.documentElement.setAttribute('data-mode', mode);
+                  document.documentElement.setAttribute('data-accent', accent);
+                } catch(e) {
+                  document.documentElement.setAttribute('data-mode', 'dark');
+                  document.documentElement.setAttribute('data-accent', 'blue');
+                }
               })();
             `,
           }}

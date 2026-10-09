@@ -74,16 +74,38 @@ const rawEdges = [
 ];
 
 function nodeColor(type: NodeType, isReachable: boolean) {
-  if (!isReachable) return { fill: '#1e293b', stroke: '#334155', text: '#64748b' };
+  if (!isReachable) {
+    return {
+      fill: 'var(--node-unreachable-fill)',
+      stroke: 'var(--node-unreachable-stroke)',
+      text: 'var(--node-unreachable-text)',
+    };
+  }
   switch (type) {
     case 'entry':
-      return { fill: '#1e3a5f', stroke: '#3b82f6', text: '#93c5fd' };
+      return {
+        fill: 'var(--node-entry-fill)',
+        stroke: 'var(--node-entry-stroke)',
+        text: 'var(--node-entry-text)',
+      };
     case 'branch':
-      return { fill: '#3b2f0a', stroke: '#f59e0b', text: '#fcd34d' };
+      return {
+        fill: 'var(--node-branch-fill)',
+        stroke: 'var(--node-branch-stroke)',
+        text: 'var(--node-branch-text)',
+      };
     case 'vuln':
-      return { fill: '#4c1d1d', stroke: '#ef4444', text: '#fca5a5' };
+      return {
+        fill: 'var(--node-vuln-fill)',
+        stroke: 'var(--node-vuln-stroke)',
+        text: 'var(--node-vuln-text)',
+      };
     case 'exit':
-      return { fill: '#064e3b', stroke: '#10b981', text: '#6ee7b7' };
+      return {
+        fill: 'var(--node-exit-fill)',
+        stroke: 'var(--node-exit-stroke)',
+        text: 'var(--node-exit-text)',
+      };
   }
 }
 
@@ -215,7 +237,7 @@ function PathExplorer() {
             {edges.map((edge, i) => {
               const from = getNodePos(edge.from);
               const to = getNodePos(edge.to);
-              const color = edge.reachable ? '#3b82f6' : '#334155';
+              const color = edge.reachable ? 'var(--edge-reachable)' : 'var(--edge-unreachable)';
               const strokeWidth = edge.reachable ? 2.5 : 1.5;
               const dashArray = edge.reachable ? '' : '4 4';
 
@@ -270,7 +292,7 @@ function PathExplorer() {
                       x={(x1 + x2) / 2 + (to.x < from.x ? -10 : 10)}
                       y={(y1 + y2) / 2 - 5}
                       textAnchor="middle"
-                      fill={edge.reachable ? '#94a3b8' : '#475569'}
+                      fill={edge.reachable ? 'var(--edge-label-reachable)' : 'var(--edge-label-unreachable)'}
                       fontSize="10"
                       className="select-none"
                     >
