@@ -167,9 +167,9 @@ function DiffView({
   rightTitle: string;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-0 rounded-lg overflow-hidden border border-[#21262d] bg-[#0d1117]">
-      <div className="border-r border-[#21262d]">
-        <div className="px-3 py-2 bg-[#161b22] border-b border-[#21262d] text-xs text-gray-400 font-medium">
+    <div className="grid grid-cols-2 gap-0 rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--bg-code)]">
+      <div className="border-r border-[var(--border)]">
+        <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] text-xs text-[var(--text-muted)] font-medium">
           {leftTitle}
         </div>
         <pre className="p-3 text-[12px] leading-relaxed font-mono overflow-x-auto">
@@ -181,10 +181,10 @@ function DiffView({
                   ? 'bg-red-500/15 text-red-300'
                   : line.type === 'added'
                   ? 'bg-green-500/15 text-green-300'
-                  : 'text-gray-300'
+                  : 'text-[var(--text-muted)]'
               }`}
             >
-              <span className="inline-block w-6 text-gray-600 text-right mr-3 select-none">
+              <span className="inline-block w-6 text-[var(--text-soft)] text-right mr-3 select-none">
                 {i + 1}
               </span>
               {line.text || ' '}
@@ -193,7 +193,7 @@ function DiffView({
         </pre>
       </div>
       <div>
-        <div className="px-3 py-2 bg-[#161b22] border-b border-[#21262d] text-xs text-gray-400 font-medium">
+        <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] text-xs text-[var(--text-muted)] font-medium">
           {rightTitle}
         </div>
         <pre className="p-3 text-[12px] leading-relaxed font-mono overflow-x-auto">
@@ -205,10 +205,10 @@ function DiffView({
                   ? 'bg-green-500/15 text-green-300'
                   : line.type === 'removed'
                   ? 'bg-red-500/15 text-red-300'
-                  : 'text-gray-300'
+                  : 'text-[var(--text-muted)]'
               }`}
             >
-              <span className="inline-block w-6 text-gray-600 text-right mr-3 select-none">
+              <span className="inline-block w-6 text-[var(--text-soft)] text-right mr-3 select-none">
                 {i + 1}
               </span>
               {line.text || ' '}
@@ -231,7 +231,7 @@ export default function DilipaDemo() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
           <h3 className="text-lg font-bold mb-1">概念演示：strcpy → strncpy</h3>
-          <p className="text-gray-400 text-sm">
+          <p className="text-[var(--text-muted)] text-sm">
             观察 C 代码层面的修改如何映射到汇编指令层面的变化
           </p>
         </div>
@@ -246,7 +246,7 @@ export default function DilipaDemo() {
           </button>
           <button
             onClick={() => setPatched(false)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-bg-hover hover:bg-bg-soft text-gray-300 text-sm font-medium rounded-lg transition-colors border border-border"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-bg-hover hover:bg-bg-soft text-[var(--text-muted)] text-sm font-medium rounded-lg transition-colors border border-border"
           >
             <RefreshCw size={14} />
             重置
@@ -261,11 +261,11 @@ export default function DilipaDemo() {
           <span className="text-sm font-semibold text-brand-300">C 代码层面</span>
         </div>
         {!patched ? (
-          <div className="rounded-lg overflow-hidden border border-[#21262d] bg-[#0d1117]">
-            <div className="px-3 py-2 bg-[#161b22] border-b border-[#21262d] text-xs text-gray-400 font-medium">
+          <div className="rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--bg-code)]">
+            <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] text-xs text-[var(--text-muted)] font-medium">
               提升后的 C 代码（原始版本）
             </div>
-            <pre className="p-3 text-[12px] leading-relaxed font-mono text-gray-300 overflow-x-auto">
+            <pre className="p-3 text-[12px] leading-relaxed font-mono text-[var(--text-muted)] overflow-x-auto">
               {originalC}
             </pre>
           </div>
@@ -294,11 +294,11 @@ export default function DilipaDemo() {
           <span className="text-sm font-semibold text-accent-orange">汇编指令层面</span>
         </div>
         {!patched ? (
-          <div className="rounded-lg overflow-hidden border border-[#21262d] bg-[#0d1117]">
-            <div className="px-3 py-2 bg-[#161b22] border-b border-[#21262d] text-xs text-gray-400 font-medium">
-              对应的反汇编代码
+          <div className="rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--bg-code)]">
+            <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] text-xs text-[var(--text-muted)] font-medium">
+              提升后的 C 代码（补丁版本）
             </div>
-            <pre className="p-3 text-[12px] leading-relaxed font-mono text-gray-300 overflow-x-auto">
+            <pre className="p-3 text-[12px] leading-relaxed font-mono text-[var(--text-muted)] overflow-x-auto">
               {originalAsm}
             </pre>
           </div>
@@ -316,7 +316,7 @@ export default function DilipaDemo() {
       {patched && (
         <div className="mt-6 p-4 bg-accent-purple/10 border border-accent-purple/20 rounded-xl">
           <div className="text-sm font-semibold text-accent-purple mb-2">映射关系说明</div>
-          <ul className="text-sm text-gray-300 space-y-2">
+          <ul className="text-sm text-[var(--text-muted)] space-y-2">
             <li className="flex gap-2">
               <span className="text-accent-purple">C 层：</span>
               <span>

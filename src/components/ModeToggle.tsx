@@ -21,7 +21,7 @@ export default function ModeToggle({ mode, onChange, className }: ModeToggleProp
           'flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all',
           mode === 'beginner'
             ? 'bg-brand-600 text-white shadow-sm'
-            : 'text-gray-400 hover:text-gray-200'
+            : 'text-[var(--text-muted)] hover:text-[var(--text-bright)]'
         )}
       >
         <GraduationCap size={15} />
@@ -33,7 +33,7 @@ export default function ModeToggle({ mode, onChange, className }: ModeToggleProp
           'flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all',
           mode === 'advanced'
             ? 'bg-accent-purple text-white shadow-sm'
-            : 'text-gray-400 hover:text-gray-200'
+            : 'text-[var(--text-muted)] hover:text-[var(--text-bright)]'
         )}
       >
         <Sparkles size={15} />

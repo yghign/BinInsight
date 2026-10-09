@@ -62,9 +62,9 @@ export default function CodeBlock({
   return (
     <div className={clsx('code-block relative', className)}>
       {title && (
-        <div className="flex items-center justify-between px-4 py-2 border-b border-gray-800 bg-[#161b22] rounded-t-lg">
-          <span className="text-xs text-gray-400 font-medium">{title}</span>
-          <span className="text-xs text-gray-600 uppercase tracking-wide">{language}</span>
+        <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border)] bg-[var(--bg-code-header)] rounded-t-lg">
+          <span className="text-xs text-[var(--text-muted)] font-medium">{title}</span>
+          <span className="text-xs text-[var(--text-soft)] uppercase tracking-wide">{language}</span>
         </div>
       )}
       <pre className={showLineNumbers ? 'line-numbers' : ''}>
@@ -74,8 +74,8 @@ export default function CodeBlock({
       </pre>
       <style jsx>{`
         :global(.code-block) {
-          background: #0d1117;
-          border: 1px solid #21262d;
+          background: var(--bg-code);
+          border: 1px solid var(--border);
           border-radius: 8px;
           overflow-x: auto;
         }
@@ -90,7 +90,7 @@ export default function CodeBlock({
           font-size: 13px;
           line-height: 1.65;
         }
-        /* Prism dark theme */
+        /* Prism dark theme (default) */
         :global(.token.comment),
         :global(.token.prolog),
         :global(.token.doctype),
@@ -137,7 +137,7 @@ export default function CodeBlock({
           color: #ffa657;
         }
         :global(.line-numbers .line-numbers-rows) {
-          border-right: 1px solid #21262d;
+          border-right: 1px solid var(--border);
         }
         :global(.line-numbers-rows > span:before) {
           color: #484f58;

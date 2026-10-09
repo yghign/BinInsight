@@ -68,7 +68,7 @@ export default function StepProgress() {
                       ? 'bg-brand-500 text-white'
                       : isPast
                       ? 'bg-accent-green/20 text-accent-green'
-                      : 'bg-bg-hover text-gray-500 group-hover:text-gray-300'
+                      : 'bg-bg-hover text-[var(--text-soft)] group-hover:text-[var(--text-muted)]'
                   )}
                 >
                   {isPast ? <CheckCircle size={20} /> : <Icon size={20} />}
@@ -77,12 +77,12 @@ export default function StepProgress() {
                   <div
                     className={clsx(
                       'text-sm font-semibold',
-                      isActive ? 'text-brand-300' : 'text-gray-300'
+                      isActive ? 'text-brand-300' : 'text-[var(--text-muted)]'
                     )}
                   >
                     {step.title}
                   </div>
-                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">
+                  <div className="text-[10px] text-[var(--text-soft)] uppercase tracking-wider">
                     Step {idx + 1}
                   </div>
                 </div>

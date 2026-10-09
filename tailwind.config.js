@@ -9,14 +9,20 @@ module.exports = {
     extend: {
       colors: {
         bg: {
-          DEFAULT: '#0a0e17',
-          card: '#111827',
-          hover: '#1e293b',
-          soft: '#0f172a',
+          DEFAULT: 'var(--bg)',
+          card: 'var(--bg-card)',
+          hover: 'var(--bg-hover)',
+          soft: 'var(--bg-soft)',
         },
         border: {
-          DEFAULT: '#1e293b',
-          soft: '#334155',
+          DEFAULT: 'var(--border)',
+          soft: 'var(--border-soft)',
+        },
+        ink: {
+          DEFAULT: 'var(--text)',
+          muted: 'var(--text-muted)',
+          soft: 'var(--text-soft)',
+          bright: 'var(--text-bright)',
         },
         brand: {
           50: 'var(--brand-50)',

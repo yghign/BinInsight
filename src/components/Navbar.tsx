@@ -25,8 +25,8 @@ export default function Navbar() {
               <Binary size={20} className="text-white" />
             </div>
             <div>
-              <span className="font-bold text-lg tracking-tight">BinInsight</span>
-              <span className="hidden sm:inline text-xs text-gray-500 ml-2">洞见二进制</span>
+              <span className="font-bold text-lg tracking-tight text-[var(--text)]">BinInsight</span>
+              <span className="hidden sm:inline text-xs text-[var(--text-soft)] ml-2">洞见二进制</span>
             </div>
           </Link>
 
@@ -43,7 +43,7 @@ export default function Navbar() {
                     className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       isActive
                         ? 'bg-brand-600/20 text-brand-300'
-                        : 'text-gray-400 hover:text-white hover:bg-bg-hover'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-bright)] hover:bg-bg-hover'
                     }`}
                   >
                     <Icon size={16} />
@@ -57,7 +57,7 @@ export default function Navbar() {
 
             {/* Mobile toggle */}
             <button
-              className="md:hidden p-2 rounded-lg hover:bg-bg-hover text-gray-400"
+              className="md:hidden p-2 rounded-lg hover:bg-bg-hover text-[var(--text-muted)]"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
@@ -79,7 +79,7 @@ export default function Navbar() {
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium ${
                     isActive
                       ? 'bg-brand-600/20 text-brand-300'
-                      : 'text-gray-400 hover:text-white hover:bg-bg-hover'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-bright)] hover:bg-bg-hover'
                   }`}
                 >
                   <Icon size={16} />

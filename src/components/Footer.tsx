@@ -13,15 +13,15 @@ export default function Footer() {
               </div>
               <span className="font-bold">BinInsight</span>
             </Link>
-            <p className="text-sm text-gray-500 leading-relaxed">
+            <p className="text-sm text-[var(--text-soft)] leading-relaxed">
               逆向工程与漏洞防护学习平台<br />
               从入门到进阶，洞见二进制世界
             </p>
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-gray-300 mb-3">学习路径</h4>
-            <ul className="space-y-2 text-sm text-gray-500">
+            <h4 className="text-sm font-semibold text-[var(--text-muted)] mb-3">学习路径</h4>
+            <ul className="space-y-2 text-sm text-[var(--text-soft)]">
               <li><Link href="/learn/step1" className="hover:text-brand-400 transition-colors">解包与识别</Link></li>
               <li><Link href="/learn/step2" className="hover:text-brand-400 transition-colors">静态分析</Link></li>
               <li><Link href="/learn/step3" className="hover:text-brand-400 transition-colors">路径探索</Link></li>
@@ -30,8 +30,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-gray-300 mb-3">工具 & 案例</h4>
-            <ul className="space-y-2 text-sm text-gray-500">
+            <h4 className="text-sm font-semibold text-[var(--text-muted)] mb-3">工具 & 案例</h4>
+            <ul className="space-y-2 text-sm text-[var(--text-soft)]">
               <li><Link href="/tools/mutagen" className="hover:text-brand-400 transition-colors">Mutagen 一键工具</Link></li>
               <li><Link href="/tools/dilipa" className="hover:text-brand-400 transition-colors">Dilipa 微补丁台</Link></li>
               <li><Link href="/cases" className="hover:text-brand-400 transition-colors">实战案例库</Link></li>
@@ -39,8 +39,8 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="text-sm font-semibold text-gray-300 mb-3">关于</h4>
-            <ul className="space-y-2 text-sm text-gray-500">
+            <h4 className="text-sm font-semibold text-[var(--text-muted)] mb-3">关于</h4>
+            <ul className="space-y-2 text-sm text-[var(--text-soft)]">
               <li><Link href="/terms" className="hover:text-brand-400 transition-colors">使用条款</Link></li>
               <li>
                 <a
@@ -56,7 +56,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-600">
+        <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-[var(--text-soft)]">
           <p className="flex items-center gap-1">
             <Shield size={12} />
             仅供教育目的使用，请在授权范围内学习研究

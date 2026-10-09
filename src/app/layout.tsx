@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: 'BinInsight · 洞见二进制 — 逆向工程与漏洞防护学习平台',
   description: '面向新手到进阶的逆向工程与漏洞防护学习网站，包含教学引导、工具下载和实战案例三层结构。',
   keywords: ['逆向工程', '漏洞防护', '二进制安全', 'CTF', 'Pwn', 'Ghidra', '栈溢出', '漏洞分析'],
+  icons: {
+    icon: '/BinInsight/favicon.svg',
+  },
 };
 
 export default function RootLayout({
@@ -20,6 +23,20 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('bininsight-theme');
+                  if (theme && theme !== 'blue') {
+                    document.documentElement.setAttribute('data-theme', theme);
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
       </head>
       <body className="min-h-screen flex flex-col bg-bg">
         <Navbar />
