@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { TermsProvider } from '@/components/TermsDrawer';
 
 export const metadata: Metadata = {
   title: 'BinInsight · 洞见二进制 — 逆向工程与漏洞防护学习平台',
@@ -18,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" data-mode="dark" data-accent="blue" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -42,9 +43,11 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col bg-bg">
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <TermsProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </TermsProvider>
       </body>
     </html>
   );

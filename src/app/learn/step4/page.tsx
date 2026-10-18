@@ -4,25 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import ModeToggle, { type Mode } from '@/components/ModeToggle';
 import CodeBlock from '@/components/CodeBlock';
-import {
-  ArrowRight,
-  ArrowLeft,
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  ShieldX,
-  Lock,
-  Unlock,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  Swords,
-  FileDiff,
-  Wrench,
-  Skull,
-  Zap,
-  Gauge,
-} from 'lucide-react';
 import clsx from 'clsx';
 
 /* ---------- 防护策略数据 ---------- */
@@ -67,7 +48,7 @@ void vulnerable(char *input) {
 // +------------------+
 // |   buf[63..0]     |  ← 从这里往上写
 // +------------------+`,
-    color: 'text-gray-400',
+    color: 'text-[var(--text-muted)]',
   },
   {
     id: 'canary',
@@ -223,23 +204,30 @@ void indirect_call(void (*fn)(void)) {
 
 /* ---------- 防护对比交互组件 ---------- */
 
+function effectTone(effect: ProtectionInfo['blockEffect'], canBlock: boolean) {
+  if (!canBlock) return 'text-accent-red border-accent-red/40 bg-accent-red/5';
+  if (effect === '完全阻止') return 'text-accent-green border-accent-green/40 bg-accent-green/5';
+  if (effect === '大幅增加难度') return 'text-accent-cyan border-accent-cyan/40 bg-accent-cyan/5';
+  return 'text-accent-orange border-accent-orange/40 bg-accent-orange/5';
+}
+
 function ProtectionComparison() {
   const [activeId, setActiveId] = useState('none');
   const active = protections.find((p) => p.id === activeId)!;
 
   return (
-    <div className="bg-bg-card border border-border rounded-2xl p-6">
+    <div className="u-panel p-5 md:p-6">
       {/* 防护标签切换 */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-1.5 mb-6">
         {protections.map((p) => (
           <button
             key={p.id}
             onClick={() => setActiveId(p.id)}
             className={clsx(
-              'px-4 py-2 rounded-lg text-sm font-medium transition-all border',
+              'font-mono text-[12px] px-3 py-1.5 rounded-md border transition-colors',
               activeId === p.id
-                ? 'bg-brand-600 border-brand-500 text-white'
-                : 'bg-bg-soft border-border text-gray-400 hover:text-gray-200 hover:border-border-soft'
+                ? 'bg-[var(--brand-500)] border-[var(--brand-500)] text-white'
+                : 'border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] hover:border-[var(--border-soft)]'
             )}
           >
             {p.shortName}
@@ -248,88 +236,55 @@ function ProtectionComparison() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* 左侧：原理说明 */}
-        <div className="space-y-4">
+        {/* 左：原理 */}
+        <div className="space-y-5">
           <div>
-            <h4 className={clsx('text-lg font-bold mb-2', active.color)}>{active.name}</h4>
-            <p className="text-sm text-gray-400">{active.description}</p>
+            <h4 className={clsx('text-base md:text-lg font-semibold mb-1.5', active.color)}>
+              {active.name}
+            </h4>
+            <p className="text-[13.5px] text-[var(--text-muted)]">{active.description}</p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
-              <h5 className="text-sm font-semibold text-gray-200 mb-1 flex items-center gap-1.5">
-                <ShieldCheck size={14} className="text-accent-green" />
+              <h5 className="font-mono text-[11px] tracking-wider text-accent-green mb-1.5">
                 工作原理
               </h5>
-              <p className="text-sm text-gray-400 leading-relaxed">{active.principle}</p>
+              <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">{active.principle}</p>
             </div>
 
             <div>
-              <h5 className="text-sm font-semibold text-gray-200 mb-1 flex items-center gap-1.5">
-                <Wrench size={14} className="text-accent-cyan" />
+              <h5 className="font-mono text-[11px] tracking-wider text-[var(--accent-cyan)] mb-1.5">
                 二进制层面的变化
               </h5>
-              <p className="text-sm text-gray-400 leading-relaxed">{active.binaryChange}</p>
+              <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">
+                {active.binaryChange}
+              </p>
             </div>
           </div>
 
           {/* 防护效果 */}
-          <div
-            className={clsx(
-              'rounded-xl p-4 border',
-              active.canBlock
-                ? active.blockEffect === '完全阻止'
-                  ? 'bg-accent-green/10 border-accent-green/40'
-                  : active.blockEffect === '大幅增加难度'
-                  ? 'bg-accent-cyan/10 border-accent-cyan/40'
-                  : 'bg-accent-orange/10 border-accent-orange/40'
-                : 'bg-accent-red/10 border-accent-red/40'
-            )}
-          >
-            <div className="flex items-center gap-2 mb-1">
-              {active.canBlock ? (
-                active.blockEffect === '完全阻止' ? (
-                  <ShieldCheck size={18} className="text-accent-green" />
-                ) : (
-                  <ShieldAlert size={18} className="text-accent-cyan" />
-                )
-              ) : (
-                <ShieldX size={18} className="text-accent-red" />
-              )}
-              <span
-                className={clsx(
-                  'text-sm font-semibold',
-                  active.canBlock
-                    ? active.blockEffect === '完全阻止'
-                      ? 'text-accent-green'
-                      : active.blockEffect === '大幅增加难度'
-                      ? 'text-accent-cyan'
-                      : 'text-accent-orange'
-                    : 'text-accent-red'
-                )}
-              >
-                防护效果：{active.blockEffect}
-              </span>
-            </div>
+          <div className={clsx('rounded-md border px-4 py-3', effectTone(active.blockEffect, active.canBlock))}>
+            <span className="text-[13px] font-semibold">
+              防护效果：{active.blockEffect}
+            </span>
           </div>
 
           {/* 绕过方法 */}
-          <div className="bg-bg-soft/50 rounded-xl p-4 border border-border">
-            <h5 className="text-sm font-semibold text-gray-200 mb-2 flex items-center gap-1.5">
-              <Swords size={14} className="text-accent-red" />
-              绕过方法
+          <div className="border border-[var(--border)] rounded-md p-4">
+            <h5 className="font-mono text-[11px] tracking-wider text-accent-red mb-2">
+              绕过方法 / BYPASS
             </h5>
-            <div className="text-xs text-gray-400 whitespace-pre-line leading-relaxed">
+            <div className="text-[12.5px] text-[var(--text-muted)] whitespace-pre-line leading-relaxed">
               {active.bypassMethod}
             </div>
           </div>
         </div>
 
-        {/* 右侧：代码展示 */}
+        {/* 右：代码 */}
         <div>
-          <h5 className="text-sm font-semibold text-gray-200 mb-2 flex items-center gap-1.5">
-            <FileDiff size={14} className="text-accent-purple" />
-            代码/内存示意
+          <h5 className="font-mono text-[11px] tracking-wider text-accent-purple mb-2">
+            代码 / 内存示意
           </h5>
           <CodeBlock language="c" title={active.name} code={active.code} />
         </div>
@@ -376,35 +331,33 @@ const patchedPatchCode = `int parse_packet(char *data, int len) {
 function PatchDiffDemo() {
   const vulnLines = vulnerablePatchCode.split('\n');
   const patchLines = patchedPatchCode.split('\n');
-  const maxLines = Math.max(vulnLines.length, patchLines.length);
 
-  // 哪些行有差异 (0-indexed)
   const diffLinesVuln = new Set<number>([10]);
   const diffLinesPatch = new Set<number>([10, 11, 12]);
 
   return (
-    <div className="bg-bg-card border border-border rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h4 className="text-lg font-semibold text-white flex items-center gap-2">
-          <FileDiff size={18} className="text-accent-purple" />
-          补丁比对演示
-        </h4>
-        <div className="text-xs text-gray-500">parse_packet 函数 · 边界检查补丁</div>
+    <div className="u-panel p-5 md:p-6">
+      <div className="flex items-center justify-between mb-5">
+        <h4 className="text-[15px] font-semibold">补丁比对演示</h4>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-soft)]">
+          parse_packet · 边界检查补丁
+        </span>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
-        {/* 漏洞版本 */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 rounded-full bg-accent-red" />
-            <span className="text-sm font-medium text-accent-red">漏洞版本 (Vulnerable)</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-red" />
+            <span className="font-mono text-[11px] tracking-wider text-accent-red">
+              漏洞版本 · VULNERABLE
+            </span>
           </div>
-          <div className="bg-[var(--bg-code)] border border-border rounded-xl overflow-hidden font-mono text-xs">
+          <div className="bg-[var(--bg-code)] border border-[var(--border)] rounded-md overflow-hidden font-mono text-[12px]">
             {vulnLines.map((line, i) => (
               <div
                 key={i}
                 className={clsx(
-                  'flex px-3 py-0.5',
+                  'flex px-3 py-[2px]',
                   diffLinesVuln.has(i) ? 'bg-accent-red/15 border-l-2 border-accent-red' : ''
                 )}
               >
@@ -417,18 +370,19 @@ function PatchDiffDemo() {
           </div>
         </div>
 
-        {/* 补丁版本 */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 rounded-full bg-accent-green" />
-            <span className="text-sm font-medium text-accent-green">补丁版本 (Patched)</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-green" />
+            <span className="font-mono text-[11px] tracking-wider text-accent-green">
+              补丁版本 · PATCHED
+            </span>
           </div>
-          <div className="bg-[var(--bg-code)] border border-border rounded-xl overflow-hidden font-mono text-xs">
+          <div className="bg-[var(--bg-code)] border border-[var(--border)] rounded-md overflow-hidden font-mono text-[12px]">
             {patchLines.map((line, i) => (
               <div
                 key={i}
                 className={clsx(
-                  'flex px-3 py-0.5',
+                  'flex px-3 py-[2px]',
                   diffLinesPatch.has(i)
                     ? 'bg-accent-green/15 border-l-2 border-accent-green'
                     : ''
@@ -444,20 +398,21 @@ function PatchDiffDemo() {
         </div>
       </div>
 
-      {/* 差异说明 */}
-      <div className="mt-4 grid md:grid-cols-2 gap-4">
-        <div className="bg-accent-red/5 border border-accent-red/20 rounded-xl p-4">
-          <h5 className="text-sm font-semibold text-accent-red mb-2">供应商修了什么？</h5>
-          <p className="text-xs text-gray-400">
+      <div className="mt-5 grid md:grid-cols-2 gap-px bg-[var(--border)] border border-[var(--border)] rounded-md overflow-hidden">
+        <div className="bg-[var(--bg-card)] p-5">
+          <h5 className="font-mono text-[11px] tracking-wider text-accent-red mb-2">
+            供应商修了什么
+          </h5>
+          <p className="text-[12.5px] text-[var(--text-muted)] leading-relaxed">
             在 memcpy 调用前增加了对 size 参数的边界检查。如果 size 大于 32（header 缓冲区大小）
             或为负数，函数直接返回错误，避免了栈缓冲区溢出。
           </p>
         </div>
-        <div className="bg-accent-orange/5 border border-accent-orange/20 rounded-xl p-4">
-          <h5 className="text-sm font-semibold text-accent-orange mb-2">
-            攻击者如何从补丁反推漏洞？
+        <div className="bg-[var(--bg-card)] p-5">
+          <h5 className="font-mono text-[11px] tracking-wider text-accent-orange mb-2">
+            攻击者如何从补丁反推漏洞
           </h5>
-          <p className="text-xs text-gray-400">
+          <p className="text-[12.5px] text-[var(--text-muted)] leading-relaxed">
             通过 BinDiff 等工具对比补丁前后的二进制，定位被修改的函数。
             新增的边界检查往往暗示了旧版本中存在相应的越界读写漏洞。
             这就是「补丁反向工程」——1day 漏洞的主要来源。
@@ -474,197 +429,195 @@ export default function Step4Page() {
   const [mode, setMode] = useState<Mode>('beginner');
 
   return (
-    <div className="space-y-10">
-      {/* 顶部标题区 */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-brand-400 text-sm font-medium mb-2">
-            <Shield size={16} />
-            Step 4 · 防护策略
+    <div className="space-y-14">
+      {/* 页头 */}
+      <section>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-5">
+          <div>
+            <p className="u-eyebrow mb-2">Hardening</p>
+            <h2 className="u-display text-2xl md:text-[28px]">防护策略与补丁分析</h2>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">防护策略与补丁分析</h2>
-          <p className="text-gray-400 max-w-2xl">
-            了解操作系统和编译器提供的各种二进制安全防护机制，以及如何通过补丁比对发现漏洞。
-          </p>
+          <ModeToggle mode={mode} onChange={setMode} />
         </div>
-        <ModeToggle mode={mode} onChange={setMode} />
-      </div>
+        <p className="text-[15px] text-[var(--text-muted)] leading-relaxed max-w-3xl">
+          了解操作系统和编译器提供的各种二进制安全防护机制，以及如何通过补丁比对发现漏洞。
+        </p>
+      </section>
 
-      {/* 核心交互：防护策略对比 */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Shield size={20} className="text-accent-cyan" />
-          <h3 className="text-lg font-semibold text-white">交互示例：防护策略对比</h3>
+      {/* 4.1 防护策略对比 */}
+      <section className="space-y-5">
+        <div className="flex items-baseline gap-3">
+          <span className="u-section-num">4.1</span>
+          <h3 className="text-lg md:text-xl font-semibold tracking-tight">
+            交互示例：防护策略对比
+          </h3>
         </div>
-        <p className="text-gray-400 text-sm">
+        <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
           切换不同防护机制标签，查看各自的原理、二进制层面的变化、防护效果以及已知的绕过方法。
         </p>
         <ProtectionComparison />
       </section>
 
-      {/* 补丁比对 */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <FileDiff size={20} className="text-accent-purple" />
-          <h3 className="text-lg font-semibold text-white">补丁比对（Patch Diffing）</h3>
+      {/* 4.2 补丁比对 */}
+      <section className="space-y-5">
+        <div className="flex items-baseline gap-3">
+          <span className="u-section-num">4.2</span>
+          <h3 className="text-lg md:text-xl font-semibold tracking-tight">
+            补丁比对（Patch Diffing）
+          </h3>
         </div>
-        <p className="text-gray-400 text-sm">
+        <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
           供应商发布安全补丁后，攻击者可以通过对比补丁前后的二进制文件，
           快速定位修复了哪个漏洞，进而开发出针对性的攻击代码（1day 漏洞）。
         </p>
         <PatchDiffDemo />
       </section>
 
-      {/* 新手模式内容 */}
+      {/* 新手模式 */}
       {mode === 'beginner' && (
-        <div className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* 栈保护 */}
-            <div className="bg-bg-card border border-border rounded-2xl p-6">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-accent-orange/20 flex items-center justify-center">
-                  <ShieldCheck size={20} className="text-accent-orange" />
+        <div className="space-y-10">
+          {/* Canary + 安全字符串函数：分栏 */}
+          <section className="space-y-5">
+            <div className="flex items-baseline gap-3">
+              <span className="u-section-num">4.3</span>
+              <h3 className="text-lg md:text-xl font-semibold tracking-tight">
+                编码层面的基础防护
+              </h3>
+            </div>
+            <div className="grid md:grid-cols-2 gap-px bg-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden">
+              <div className="bg-[var(--bg-card)] p-6 md:p-7">
+                <h4 className="font-mono text-[11px] tracking-wider mb-3 text-accent-orange">
+                  栈保护 · CANARY
+                </h4>
+                <p className="text-[13px] text-[var(--text-muted)] leading-relaxed mb-4">
+                  就像矿井里的金丝雀——如果它死了，说明有危险，大家赶紧撤。
+                </p>
+                <ul className="text-[12.5px] text-[var(--text-muted)] space-y-2 mb-4">
+                  <li className="flex items-start gap-2.5">
+                    <span className="font-mono text-[var(--text-soft)]">—</span>
+                    <span>函数开头在栈上放一个随机数（金丝雀）</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <span className="font-mono text-[var(--text-soft)]">—</span>
+                    <span>函数返回前检查这个数有没有被改动</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <span className="font-mono text-[var(--text-soft)]">—</span>
+                    <span>如果被改了，说明栈溢出了，程序直接崩溃</span>
+                  </li>
+                </ul>
+                <div className="border border-[var(--border)] rounded-md px-3 py-2 font-mono text-[12px] text-[var(--text-muted)]">
+                  gcc -fstack-protector-strong
                 </div>
-                <h4 className="font-semibold text-white">栈保护（Canary）</h4>
               </div>
-              <p className="text-sm text-gray-400 mb-3">
-                就像矿井里的金丝雀——如果它死了，说明有危险，大家赶紧撤。
-              </p>
-              <ul className="text-xs text-gray-400 space-y-2">
-                <li className="flex gap-2">
-                  <span className="text-accent-orange">•</span>
-                  <span>函数开头在栈上放一个随机数（金丝雀）</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-accent-orange">•</span>
-                  <span>函数返回前检查这个数有没有被改动</span>
-                </li>
-                <li className="flex gap-2">
-                  <span className="text-accent-orange">•</span>
-                  <span>如果被改了，说明栈溢出了，程序直接崩溃</span>
-                </li>
-              </ul>
-              <div className="mt-4 bg-bg-soft rounded-lg p-3">
-                <p className="text-xs text-gray-500">
-                  <strong className="text-gray-300">编译选项：</strong>
-                  <code className="inline">gcc -fstack-protector-strong</code>
+
+              <div className="bg-[var(--bg-card)] p-6 md:p-7">
+                <h4 className="font-mono text-[11px] tracking-wider mb-3 text-accent-green">
+                  安全字符串函数
+                </h4>
+                <p className="text-[13px] text-[var(--text-muted)] leading-relaxed mb-4">
+                  危险函数（gets、strcpy、sprintf）不检查边界，很容易导致溢出。
+                  应替换为带长度限制的安全版本。
+                </p>
+                <div className="space-y-2 font-mono text-[12.5px]">
+                  {[
+                    ['gets()', 'fgets()'],
+                    ['strcpy()', 'strncpy()'],
+                    ['sprintf()', 'snprintf()'],
+                    ['strcat()', 'strncat()'],
+                  ].map(([danger, safe]) => (
+                    <div key={danger} className="flex items-center gap-3">
+                      <span className="text-accent-red line-through w-24">{danger}</span>
+                      <span className="font-mono text-[var(--text-soft)]" aria-hidden="true">→</span>
+                      <span className="text-accent-green">{safe}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* NX/DEP */}
+          <section className="u-panel p-6 md:p-7">
+            <h4 className="font-mono text-[11px] tracking-wider mb-3 text-[var(--accent-cyan)]">
+              NX / DEP · 数据不可执行
+            </h4>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-3 text-[13px] text-[var(--text-muted)] leading-relaxed">
+                <p>
+                  想象一下：你家的储藏室（数据区）里放的都是物品，不应该有人在里面表演（执行代码）。
+                  NX 就是给储藏室加了一道门——里面只能放东西，不能做动作。
+                </p>
+                <p>
+                  开启 NX 后，栈和堆里的数据都不能被当作代码执行。
+                  攻击者即使把 Shellcode 写到了栈上，也跳不进去执行。
                 </p>
               </div>
-            </div>
-
-            {/* 边界检查 */}
-            <div className="bg-bg-card border border-border rounded-2xl p-6">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-accent-green/20 flex items-center justify-center">
-                  <CheckCircle2 size={20} className="text-accent-green" />
-                </div>
-                <h4 className="font-semibold text-white">安全字符串函数</h4>
-              </div>
-              <p className="text-sm text-gray-400 mb-3">
-                危险函数（gets、strcpy、sprintf）不检查边界，很容易导致溢出。
-                应替换为带长度限制的安全版本。
-              </p>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-accent-red line-through">gets()</span>
-                  <span className="text-gray-500">→</span>
-                  <span className="text-accent-green">fgets()</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-accent-red line-through">strcpy()</span>
-                  <span className="text-gray-500">→</span>
-                  <span className="text-accent-green">strncpy()</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-accent-red line-through">sprintf()</span>
-                  <span className="text-gray-500">→</span>
-                  <span className="text-accent-green">snprintf()</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-accent-red line-through">strcat()</span>
-                  <span className="text-gray-500">→</span>
-                  <span className="text-accent-green">strncat()</span>
-                </div>
-              </div>
-            </div>
-
-            {/* NX/DEP */}
-            <div className="bg-bg-card border border-border rounded-2xl p-6 md:col-span-2">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-accent-cyan/20 flex items-center justify-center">
-                  <Lock size={20} className="text-accent-cyan" />
-                </div>
-                <h4 className="font-semibold text-white">NX / DEP（数据不可执行）</h4>
-              </div>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-400 mb-3">
-                    想象一下：你家的储藏室（数据区）里放的都是物品，不应该有人在里面表演（执行代码）。
-                    NX 就是给储藏室加了一道门——里面只能放东西，不能做动作。
-                  </p>
-                  <p className="text-sm text-gray-400">
-                    开启 NX 后，栈和堆里的数据都不能被当作代码执行。
-                    攻击者即使把 Shellcode 写到了栈上，也跳不进去执行。
-                  </p>
-                </div>
-                <div className="bg-bg-soft rounded-lg p-4">
-                  <p className="text-xs font-semibold text-gray-300 mb-2">内存权限对比</p>
-                  <div className="space-y-2 text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="w-16 text-gray-400">.text</span>
-                      <span className="text-accent-green">R-X</span>
-                      <span className="text-gray-500">（代码段：可读可执行）</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-16 text-gray-400">.data</span>
-                      <span className="text-accent-orange">RW-</span>
-                      <span className="text-gray-500">（数据段：可读可写）</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-16 text-gray-400">栈/堆</span>
-                      <span className="text-accent-orange">RW-</span>
-                      <span className="text-gray-500">（不可执行！）</span>
-                    </div>
+              <div className="border border-[var(--border)] rounded-md p-4">
+                <p className="font-mono text-[11px] tracking-wider text-[var(--text-muted)] mb-3">
+                  内存权限对比
+                </p>
+                <div className="space-y-2 font-mono text-[12px]">
+                  <div className="flex items-center gap-3">
+                    <span className="w-14 text-[var(--text-muted)]">.text</span>
+                    <span className="text-accent-green w-8">R-X</span>
+                    <span className="text-[var(--text-soft)]">代码段：可读可执行</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="w-14 text-[var(--text-muted)]">.data</span>
+                    <span className="text-accent-orange w-8">RW-</span>
+                    <span className="text-[var(--text-soft)]">数据段：可读可写</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="w-14 text-[var(--text-muted)]">栈/堆</span>
+                    <span className="text-accent-orange w-8">RW-</span>
+                    <span className="text-[var(--text-soft)]">不可执行</span>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
         </div>
       )}
 
-      {/* 进阶模式内容 */}
+      {/* 进阶模式 */}
       {mode === 'advanced' && (
-        <div className="space-y-6">
+        <div className="space-y-10">
           {/* CFI */}
-          <section className="bg-bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <ShieldCheck size={20} className="text-brand-400" />
-              <h3 className="text-lg font-semibold text-white">CFI（控制流完整性）</h3>
+          <section className="space-y-5">
+            <div className="flex items-baseline gap-3">
+              <span className="u-section-num">4.3</span>
+              <h3 className="text-lg md:text-xl font-semibold tracking-tight">
+                CFI（控制流完整性）
+              </h3>
             </div>
-            <div className="text-gray-300 space-y-4 text-sm">
+            <div className="space-y-4 text-[14px] text-[var(--text-muted)] leading-relaxed">
               <p>
                 控制流完整性（Control-Flow Integrity, CFI）是一种强安全机制，
-                其核心思想是：<strong className="text-white">程序的控制流转移只能在编译时确定的合法目标集合内</strong>。
+                其核心思想是：<strong className="text-[var(--text)]">程序的控制流转移只能在编译时确定的合法目标集合内</strong>。
               </p>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="bg-bg-soft rounded-xl p-4">
-                  <h5 className="text-sm font-semibold text-gray-200 mb-2">前向 CFI（Forward-Edge）</h5>
-                  <p className="text-xs text-gray-400 mb-2">
+              <div className="grid md:grid-cols-2 gap-px bg-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden">
+                <div className="bg-[var(--bg-card)] p-5">
+                  <h5 className="font-mono text-[11px] tracking-wider text-[var(--brand-500)] mb-2">
+                    前向 CFI · FORWARD-EDGE
+                  </h5>
+                  <p className="text-[12.5px] text-[var(--text-muted)] leading-relaxed mb-2">
                     保护间接 call 和 jmp 的目标。通常基于类型检查——函数指针只能调用同类型签名的函数。
                   </p>
-                  <p className="text-xs text-gray-500">
-                    代表实现：Clang CFI, IBT (Intel)
+                  <p className="font-mono text-[11px] text-[var(--text-soft)]">
+                    Clang CFI · IBT (Intel)
                   </p>
                 </div>
-                <div className="bg-bg-soft rounded-xl p-4">
-                  <h5 className="text-sm font-semibold text-gray-200 mb-2">后向 CFI（Backward-Edge）</h5>
-                  <p className="text-xs text-gray-400 mb-2">
+                <div className="bg-[var(--bg-card)] p-5">
+                  <h5 className="font-mono text-[11px] tracking-wider text-[var(--brand-500)] mb-2">
+                    后向 CFI · BACKWARD-EDGE
+                  </h5>
+                  <p className="text-[12.5px] text-[var(--text-muted)] leading-relaxed mb-2">
                     保护函数返回地址。维护一个安全的影子栈（Shadow Stack），
                     ret 时从影子栈取返回地址进行比较。
                   </p>
-                  <p className="text-xs text-gray-500">
-                    代表实现：Shadow Stack, CET (Intel), PAC (ARM)
+                  <p className="font-mono text-[11px] text-[var(--text-soft)]">
+                    Shadow Stack · CET (Intel) · PAC (ARM)
                   </p>
                 </div>
               </div>
@@ -694,35 +647,47 @@ void dispatch(callback_t cb, int arg) {
           </section>
 
           {/* 二进制重写 */}
-          <section className="bg-bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Wrench size={20} className="text-accent-orange" />
-              <h3 className="text-lg font-semibold text-white">二进制重写（Binary Rewriting）</h3>
+          <section className="space-y-5">
+            <div className="flex items-baseline gap-3">
+              <span className="u-section-num">4.4</span>
+              <h3 className="text-lg md:text-xl font-semibold tracking-tight">
+                二进制重写（Binary Rewriting）
+              </h3>
             </div>
-            <div className="text-sm text-gray-400 space-y-3">
-              <p>
+            <div className="space-y-4">
+              <p className="text-[14px] text-[var(--text-muted)] leading-relaxed">
                 当源码不可用时（如商业软件、遗留系统），可以直接在二进制层面进行插桩和加固。
                 二进制重写工具在反汇编的基础上，插入新的指令或修改现有指令，
                 实现各种安全防护。
               </p>
-              <div className="grid md:grid-cols-3 gap-3">
-                <div className="bg-bg-soft rounded-lg p-3">
-                  <p className="text-xs font-semibold text-accent-cyan mb-1">静态重写</p>
-                  <p className="text-xs text-gray-500">
+              <div className="grid md:grid-cols-3 gap-px bg-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden">
+                <div className="bg-[var(--bg-card)] p-5">
+                  <p className="font-mono text-[11px] tracking-wider text-[var(--accent-cyan)] mb-2">
+                    静态重写
+                  </p>
+                  <p className="text-[12.5px] text-[var(--text-muted)] leading-relaxed">
                     在程序运行前修改二进制文件。
-                    代表工具：Dyninst, McSema, RetroWrite
+                  </p>
+                  <p className="font-mono text-[11px] text-[var(--text-soft)] mt-2">
+                    Dyninst · McSema · RetroWrite
                   </p>
                 </div>
-                <div className="bg-bg-soft rounded-lg p-3">
-                  <p className="text-xs font-semibold text-accent-purple mb-1">动态插桩</p>
-                  <p className="text-xs text-gray-500">
+                <div className="bg-[var(--bg-card)] p-5">
+                  <p className="font-mono text-[11px] tracking-wider text-accent-purple mb-2">
+                    动态插桩
+                  </p>
+                  <p className="text-[12.5px] text-[var(--text-muted)] leading-relaxed">
                     程序运行时实时修改指令。
-                    代表工具：Pin, DynamoRIO, Frida
+                  </p>
+                  <p className="font-mono text-[11px] text-[var(--text-soft)] mt-2">
+                    Pin · DynamoRIO · Frida
                   </p>
                 </div>
-                <div className="bg-bg-soft rounded-lg p-3">
-                  <p className="text-xs font-semibold text-accent-green mb-1">应用场景</p>
-                  <p className="text-xs text-gray-500">
+                <div className="bg-[var(--bg-card)] p-5">
+                  <p className="font-mono text-[11px] tracking-wider text-accent-green mb-2">
+                    应用场景
+                  </p>
+                  <p className="text-[12.5px] text-[var(--text-muted)] leading-relaxed">
                     漏洞热补丁、CFI 实现、模糊测试插桩、行为监控
                   </p>
                 </div>
@@ -730,48 +695,61 @@ void dispatch(callback_t cb, int arg) {
             </div>
           </section>
 
-          {/* BinDiff 深入 */}
-          <section className="bg-bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <FileDiff size={20} className="text-accent-green" />
-              <h3 className="text-lg font-semibold text-white">BinDiff 工具与补丁比对深入</h3>
+          {/* BinDiff */}
+          <section className="space-y-5">
+            <div className="flex items-baseline gap-3">
+              <span className="u-section-num">4.5</span>
+              <h3 className="text-lg md:text-xl font-semibold tracking-tight">
+                BinDiff 工具与补丁比对深入
+              </h3>
             </div>
-            <div className="text-sm text-gray-400 space-y-3">
-              <p>
+            <div className="space-y-4">
+              <p className="text-[14px] text-[var(--text-muted)] leading-relaxed">
                 BinDiff 是 zynamics（已被 Google 收购）开发的二进制差异比对工具，
                 能够高效对比两个二进制文件，找出相同、相似和新增/删除的函数。
                 它是逆向工程师和漏洞研究员的必备工具之一。
               </p>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <h5 className="text-sm font-semibold text-gray-200 mb-2">核心算法</h5>
-                  <ul className="text-xs text-gray-400 space-y-2">
-                    <li className="flex gap-2">
-                      <span className="text-accent-green">•</span>
-                      <span><strong className="text-gray-300">函数哈希匹配</strong>：基于指令序列的哈希（如 MDIndex）</span>
+              <div className="grid md:grid-cols-2 gap-px bg-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden">
+                <div className="bg-[var(--bg-card)] p-6">
+                  <h5 className="font-mono text-[11px] tracking-wider text-[var(--brand-500)] mb-3">
+                    核心算法
+                  </h5>
+                  <ul className="text-[12.5px] text-[var(--text-muted)] space-y-2">
+                    <li className="flex items-start gap-2.5">
+                      <span className="font-mono text-[var(--text-soft)]">—</span>
+                      <span><strong className="text-[var(--text)]">函数哈希匹配</strong>：基于指令序列的哈希（如 MDIndex）</span>
                     </li>
-                    <li className="flex gap-2">
-                      <span className="text-accent-green">•</span>
-                      <span><strong className="text-gray-300">调用图匹配</strong>：利用函数间调用关系拓扑</span>
+                    <li className="flex items-start gap-2.5">
+                      <span className="font-mono text-[var(--text-soft)]">—</span>
+                      <span><strong className="text-[var(--text)]">调用图匹配</strong>：利用函数间调用关系拓扑</span>
                     </li>
-                    <li className="flex gap-2">
-                      <span className="text-accent-green">•</span>
-                      <span><strong className="text-gray-300">基本块匹配</strong>：函数内部结构比较</span>
+                    <li className="flex items-start gap-2.5">
+                      <span className="font-mono text-[var(--text-soft)]">—</span>
+                      <span><strong className="text-[var(--text)]">基本块匹配</strong>：函数内部结构比较</span>
                     </li>
-                    <li className="flex gap-2">
-                      <span className="text-accent-green">•</span>
-                      <span><strong className="text-gray-300">地址签名匹配</strong>：基本块级别的特征向量</span>
+                    <li className="flex items-start gap-2.5">
+                      <span className="font-mono text-[var(--text-soft)]">—</span>
+                      <span><strong className="text-[var(--text)]">地址签名匹配</strong>：基本块级别的特征向量</span>
                     </li>
                   </ul>
                 </div>
-                <div>
-                  <h5 className="text-sm font-semibold text-gray-200 mb-2">典型工作流</h5>
-                  <ol className="text-xs text-gray-400 space-y-1 list-decimal list-inside">
-                    <li>用 IDA Pro 分别分析补丁前后的两个二进制</li>
-                    <li>导出 .idb 或 .i64 数据库文件</li>
-                    <li>BinDiff 加载两个数据库进行比对</li>
-                    <li>按相似度排序，找出变化最大的函数</li>
-                    <li>人工分析差异函数，确定漏洞位置</li>
+                <div className="bg-[var(--bg-card)] p-6">
+                  <h5 className="font-mono text-[11px] tracking-wider text-[var(--brand-500)] mb-3">
+                    典型工作流
+                  </h5>
+                  <ol className="text-[12.5px] text-[var(--text-muted)] space-y-2">
+                    {[
+                      '用 IDA Pro 分别分析补丁前后的两个二进制',
+                      '导出 .idb 或 .i64 数据库文件',
+                      'BinDiff 加载两个数据库进行比对',
+                      '按相似度排序，找出变化最大的函数',
+                      '人工分析差异函数，确定漏洞位置',
+                    ].map((text, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <span className="u-flow-tick" aria-hidden="true" />
+                        <span>{text}</span>
+                      </li>
+                    ))}
                   </ol>
                 </div>
               </div>
@@ -779,40 +757,40 @@ void dispatch(callback_t cb, int arg) {
           </section>
 
           {/* 0day vs 1day */}
-          <section className="bg-bg-card border border-border rounded-2xl p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Skull size={20} className="text-accent-red" />
-              <h3 className="text-lg font-semibold text-white">0day vs 1day 漏洞</h3>
+          <section className="space-y-5">
+            <div className="flex items-baseline gap-3">
+              <span className="u-section-num">4.6</span>
+              <h3 className="text-lg md:text-xl font-semibold tracking-tight">
+                0day vs 1day 漏洞
+              </h3>
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="bg-accent-red/5 border border-accent-red/30 rounded-xl p-4">
-                <h5 className="text-sm font-semibold text-accent-red mb-2 flex items-center gap-2">
-                  <Gauge size={16} />
-                  0day 漏洞
+            <div className="grid md:grid-cols-2 gap-px bg-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden">
+              <div className="bg-[var(--bg-card)] p-6 md:p-7">
+                <h5 className="font-mono text-[11px] tracking-wider text-accent-red mb-3">
+                  0DAY 漏洞
                 </h5>
-                <p className="text-xs text-gray-400 mb-2">
+                <p className="text-[13px] text-[var(--text-muted)] leading-relaxed mb-3">
                   只有攻击者知道、供应商尚未发现和修补的漏洞。
                   这类漏洞价值极高，是 APT 攻击中的核心武器。
                 </p>
-                <ul className="text-xs text-gray-500 space-y-1">
-                  <li>• 无补丁可用，防御困难</li>
-                  <li>• 发现成本高，价值连城</li>
-                  <li>• 通常只在高价值目标上使用</li>
+                <ul className="font-mono text-[11.5px] leading-relaxed text-[var(--text-soft)] space-y-1">
+                  <li>· 无补丁可用，防御困难</li>
+                  <li>· 发现成本高，价值连城</li>
+                  <li>· 通常只在高价值目标上使用</li>
                 </ul>
               </div>
-              <div className="bg-accent-orange/5 border border-accent-orange/30 rounded-xl p-4">
-                <h5 className="text-sm font-semibold text-accent-orange mb-2 flex items-center gap-2">
-                  <Zap size={16} />
-                  1day 漏洞
+              <div className="bg-[var(--bg-card)] p-6 md:p-7">
+                <h5 className="font-mono text-[11px] tracking-wider text-accent-orange mb-3">
+                  1DAY 漏洞
                 </h5>
-                <p className="text-xs text-gray-400 mb-2">
+                <p className="text-[13px] text-[var(--text-muted)] leading-relaxed mb-3">
                   供应商已经发布补丁，但大量用户尚未更新的漏洞。
                   通过补丁比对可以快速定位漏洞细节并开发利用代码。
                 </p>
-                <ul className="text-xs text-gray-500 space-y-1">
-                  <li>• 补丁发布后几小时内即可出现 PoC</li>
-                  <li>• 批量攻击未打补丁的系统</li>
-                  <li>• 勒索软件常利用 1day 漏洞传播</li>
+                <ul className="font-mono text-[11.5px] leading-relaxed text-[var(--text-soft)] space-y-1">
+                  <li>· 补丁发布后几小时内即可出现 PoC</li>
+                  <li>· 批量攻击未打补丁的系统</li>
+                  <li>· 勒索软件常利用 1day 漏洞传播</li>
                 </ul>
               </div>
             </div>
@@ -820,23 +798,17 @@ void dispatch(callback_t cb, int arg) {
         </div>
       )}
 
-      {/* 底部导航 + CTA */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-border">
-        <Link
-          href="/learn/step3"
-          className="flex items-center gap-2 px-5 py-2.5 bg-bg-card border border-border rounded-xl text-gray-300 hover:bg-bg-hover hover:text-white transition-all"
-        >
-          <ArrowLeft size={18} />
-          上一步：路径探索
+      {/* 底部导航 */}
+      <section className="pt-6 border-t border-[var(--border)] flex flex-col sm:flex-row justify-between gap-3">
+        <Link href="/learn/step3" className="u-btn u-btn-ghost">
+          <span className="font-mono" aria-hidden="true">←</span>
+          上一步 · 路径探索
         </Link>
-        <Link
-          href="/tools"
-          className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-brand-600 to-accent-purple hover:from-brand-500 hover:to-accent-purple/80 text-white rounded-xl transition-all font-medium shadow-lg shadow-brand-500/20"
-        >
+        <Link href="/tools" className="u-btn u-btn-primary">
           前往工具区
-          <ArrowRight size={18} />
+          <span className="font-mono" aria-hidden="true">→</span>
         </Link>
-      </div>
+      </section>
     </div>
   );
 }

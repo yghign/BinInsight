@@ -47,24 +47,14 @@ export default function CodeBlock({
 
   const langClass = `language-${langMap[language] || language}`;
 
-  // Build line-based content for highlighting
-  const lines = code.split('\n');
-  const highlightedCode = lines
-    .map((line, i) => {
-      const lineNum = i + 1;
-      if (highlightLines.includes(lineNum)) {
-        return `/*HL*/${line}`;
-      }
-      return line;
-    })
-    .join('\n');
-
   return (
     <div className={clsx('code-block relative', className)}>
       {title && (
-        <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border)] bg-[var(--bg-code-header)] rounded-t-lg">
-          <span className="text-xs text-[var(--text-muted)] font-medium">{title}</span>
-          <span className="text-xs text-[var(--text-soft)] uppercase tracking-wide">{language}</span>
+        <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border)] bg-[var(--bg-code-header)] rounded-t-[6px]">
+          <span className="font-mono text-[11px] text-[var(--text-muted)]">{title}</span>
+          <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-soft)]">
+            {language}
+          </span>
         </div>
       )}
       <pre className={showLineNumbers ? 'line-numbers' : ''}>
@@ -72,25 +62,6 @@ export default function CodeBlock({
           {code}
         </code>
       </pre>
-      <style jsx>{`
-        :global(.code-block) {
-          background: var(--bg-code);
-          border: 1px solid var(--border);
-          border-radius: 8px;
-          overflow-x: auto;
-        }
-        :global(.code-block pre) {
-          margin: 0;
-          padding: 16px !important;
-          background: transparent !important;
-        }
-        :global(.code-block code) {
-          background: transparent !important;
-          font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
-          font-size: 13px;
-          line-height: 1.65;
-        }
-      `}</style>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowRight, Play, RefreshCw } from 'lucide-react';
+import { Play, RotateCcw } from 'lucide-react';
 
 const originalC = `#include <stdio.h>
 #include <string.h>
@@ -167,20 +167,20 @@ function DiffView({
   rightTitle: string;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-0 rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--bg-code)]">
+    <div className="grid grid-cols-2 gap-0 rounded-md overflow-hidden border border-[var(--border)] bg-[var(--bg-code)]">
       <div className="border-r border-[var(--border)]">
-        <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] text-xs text-[var(--text-muted)] font-medium">
+        <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] font-mono text-[11px] text-[var(--text-muted)]">
           {leftTitle}
         </div>
-        <pre className="p-3 text-[12px] leading-relaxed font-mono overflow-x-auto">
+        <pre className="p-3 text-[11.5px] leading-[1.7] font-mono overflow-x-auto">
           {leftLines.map((line, i) => (
             <div
               key={i}
               className={`-mx-3 px-3 ${
                 line.type === 'removed'
-                  ? 'bg-red-500/15 text-red-300'
+                  ? 'bg-[rgba(235,94,84,0.12)] text-accent-red'
                   : line.type === 'added'
-                  ? 'bg-green-500/15 text-green-300'
+                  ? 'bg-[rgba(58,180,142,0.12)] text-accent-green'
                   : 'text-[var(--text-muted)]'
               }`}
             >
@@ -193,18 +193,18 @@ function DiffView({
         </pre>
       </div>
       <div>
-        <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] text-xs text-[var(--text-muted)] font-medium">
+        <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] font-mono text-[11px] text-[var(--text-muted)]">
           {rightTitle}
         </div>
-        <pre className="p-3 text-[12px] leading-relaxed font-mono overflow-x-auto">
+        <pre className="p-3 text-[11.5px] leading-[1.7] font-mono overflow-x-auto">
           {rightLines.map((line, i) => (
             <div
               key={i}
               className={`-mx-3 px-3 ${
                 line.type === 'added'
-                  ? 'bg-green-500/15 text-green-300'
+                  ? 'bg-[rgba(58,180,142,0.12)] text-accent-green'
                   : line.type === 'removed'
-                  ? 'bg-red-500/15 text-red-300'
+                  ? 'bg-[rgba(235,94,84,0.12)] text-accent-red'
                   : 'text-[var(--text-muted)]'
               }`}
             >
@@ -227,45 +227,47 @@ export default function DilipaDemo() {
   const asmDiff = computeAsmDiff(originalAsm, patchedAsm);
 
   return (
-    <div className="bg-bg-card border border-border rounded-2xl p-6 md:p-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div className="u-panel p-5 md:p-7">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-7">
         <div>
-          <h3 className="text-lg font-bold mb-1">概念演示：strcpy → strncpy</h3>
-          <p className="text-[var(--text-muted)] text-sm">
+          <p className="u-eyebrow mb-1.5">Live Demo</p>
+          <h3 className="text-lg md:text-xl font-semibold tracking-tight">概念演示：strcpy → strncpy</h3>
+          <p className="text-[13px] text-[var(--text-muted)] mt-1">
             观察 C 代码层面的修改如何映射到汇编指令层面的变化
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2 flex-shrink-0">
           <button
             onClick={() => setPatched(true)}
             disabled={patched}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-accent-purple hover:bg-accent-purple/80 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+            className="u-btn u-btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <Play size={14} />
+            <Play size={13} />
             应用补丁
           </button>
           <button
             onClick={() => setPatched(false)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-bg-hover hover:bg-bg-soft text-[var(--text-muted)] text-sm font-medium rounded-lg transition-colors border border-border"
+            className="u-btn u-btn-ghost"
           >
-            <RefreshCw size={14} />
+            <RotateCcw size={13} />
             重置
           </button>
         </div>
       </div>
 
       {/* C Code Diff */}
-      <div className="mb-6">
+      <div className="mb-2">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-2 h-2 rounded-full bg-brand-500" />
-          <span className="text-sm font-semibold text-brand-300">C 代码层面</span>
+          <span className="font-mono text-[11px] tracking-wider text-brand-400">
+            LAYER 01 · C 代码层面
+          </span>
         </div>
         {!patched ? (
-          <div className="rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--bg-code)]">
-            <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] text-xs text-[var(--text-muted)] font-medium">
+          <div className="rounded-md overflow-hidden border border-[var(--border)] bg-[var(--bg-code)]">
+            <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] font-mono text-[11px] text-[var(--text-muted)]">
               提升后的 C 代码（原始版本）
             </div>
-            <pre className="p-3 text-[12px] leading-relaxed font-mono text-[var(--text-muted)] overflow-x-auto">
+            <pre className="p-3 text-[11.5px] leading-[1.7] font-mono text-[var(--text-muted)] overflow-x-auto">
               {originalC}
             </pre>
           </div>
@@ -280,25 +282,26 @@ export default function DilipaDemo() {
       </div>
 
       {/* Arrow */}
-      <div className="flex justify-center my-4">
-        <div className="flex flex-col items-center gap-1 text-gray-500">
-          <ArrowRight size={20} className="rotate-90" />
-          <span className="text-xs">指令级映射</span>
+      <div className="flex justify-center py-4">
+        <div className="flex flex-col items-center gap-1 text-[var(--text-soft)]">
+          <span className="font-mono" aria-hidden="true">↓</span>
+          <span className="font-mono text-[10px] tracking-wider">指令级映射 · MAPPING</span>
         </div>
       </div>
 
       {/* Assembly Diff */}
       <div>
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-2 h-2 rounded-full bg-accent-orange" />
-          <span className="text-sm font-semibold text-accent-orange">汇编指令层面</span>
+          <span className="font-mono text-[11px] tracking-wider text-accent-orange">
+            LAYER 02 · 汇编指令层面
+          </span>
         </div>
         {!patched ? (
-          <div className="rounded-lg overflow-hidden border border-[var(--border)] bg-[var(--bg-code)]">
-            <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] text-xs text-[var(--text-muted)] font-medium">
+          <div className="rounded-md overflow-hidden border border-[var(--border)] bg-[var(--bg-code)]">
+            <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] font-mono text-[11px] text-[var(--text-muted)]">
               提升后的 C 代码（补丁版本）
             </div>
-            <pre className="p-3 text-[12px] leading-relaxed font-mono text-[var(--text-muted)] overflow-x-auto">
+            <pre className="p-3 text-[11.5px] leading-[1.7] font-mono text-[var(--text-muted)] overflow-x-auto">
               {originalAsm}
             </pre>
           </div>
@@ -314,36 +317,38 @@ export default function DilipaDemo() {
 
       {/* Explanation */}
       {patched && (
-        <div className="mt-6 p-4 bg-accent-purple/10 border border-accent-purple/20 rounded-xl">
-          <div className="text-sm font-semibold text-accent-purple mb-2">映射关系说明</div>
-          <ul className="text-sm text-[var(--text-muted)] space-y-2">
-            <li className="flex gap-2">
-              <span className="text-accent-purple">C 层：</span>
+        <div className="mt-7 border border-[var(--border)] border-l-2 border-l-[var(--brand-500)] rounded-md p-5">
+          <div className="font-mono text-[11px] tracking-wider mb-3">
+            映射关系说明 · MAPPING
+          </div>
+          <ul className="text-[13px] text-[var(--text-muted)] space-y-2.5 leading-relaxed">
+            <li className="grid grid-cols-[64px_1fr] gap-3">
+              <span className="font-mono text-brand-400 text-[12px] pt-0.5">C 层</span>
               <span>
-                <code className="text-red-300 bg-red-500/10 px-1 rounded">strcpy()</code>
+                <code className="text-accent-red">strcpy()</code>
                 {' → '}
-                <code className="text-green-300 bg-green-500/10 px-1 rounded">strncpy()</code>
+                <code className="text-accent-green">strncpy()</code>
                 ，增加长度参数和终止符设置
               </span>
             </li>
-            <li className="flex gap-2">
-              <span className="text-accent-purple">汇编层：</span>
+            <li className="grid grid-cols-[64px_1fr] gap-3">
+              <span className="font-mono text-brand-400 text-[12px] pt-0.5">汇编层</span>
               <span>
-                <code className="text-red-300 bg-red-500/10 px-1 rounded">call strcpy</code>
+                <code className="text-accent-red">call strcpy</code>
                 {' → '}
-                <code className="text-green-300 bg-green-500/10 px-1 rounded">call strncpy</code>
-                ，新增 <code className="inline bg-bg-hover px-1 rounded text-xs">mov rdx, 63</code> 传长度参数
+                <code className="text-accent-green">call strncpy</code>
+                ，新增 <code className="inline">mov rdx, 63</code> 传长度参数
               </span>
             </li>
-            <li className="flex gap-2">
-              <span className="text-accent-purple">额外指令：</span>
+            <li className="grid grid-cols-[64px_1fr] gap-3">
+              <span className="font-mono text-brand-400 text-[12px] pt-0.5">额外指令</span>
               <span>
-                新增 <code className="inline bg-bg-hover px-1 rounded text-xs">mov byte [rbp+0x0F], 0</code>
-                {' '}对应 C 代码中 buffer[63] = '\0' 的字符串终止保证
+                新增 <code className="inline">mov byte [rbp+0x0F], 0</code>
+                {' '}对应 C 代码中 buffer[63] = &apos;\0&apos; 的字符串终止保证
               </span>
             </li>
           </ul>
-          <div className="mt-3 text-xs text-gray-500">
+          <div className="mt-4 pt-3 border-t border-[var(--border)] font-mono text-[11px] leading-relaxed text-[var(--text-soft)]">
             注：以上为概念演示。实际 Dilipa 工具会通过 AST Diff 精确计算最小修改集，
             并通过二进制重写引擎生成 trampoline 或直接替换指令。
           </div>

@@ -1,387 +1,355 @@
 import Link from 'next/link';
-import {
-  Target,
-  Github,
-  ArrowRight,
-  ChevronRight,
-  Code2,
-  FileCode,
-  GitCompare,
-  Cpu,
-  Layers,
-  BookOpen,
-  Sparkles,
-  FileJson,
-  Play,
-} from 'lucide-react';
 import CodeBlock from '@/components/CodeBlock';
 import DilipaDemo from '@/components/DilipaDemo';
 
 export const metadata = {
-  title: 'Dilipa · 手动微补丁实验台 | BinInsight',
+  title: 'Dilipa · 二进制微补丁实验台 | BinInsight',
   description:
-    'Dilipa 把二进制补丁表达为 C 代码编辑，通过 AST 对比提取最小补丁并映射回指令级修改。',
+    'Dilipa 将二进制补丁表达为提升后 C 代码的编辑，通过 AST Diff 自动映射回指令级修改，直观理解微补丁生成原理。',
 };
 
 const principleSteps = [
   {
-    step: '01',
-    title: '二进制提升 (Lifting)',
-    desc: '通过 Ghidra 将二进制反编译为可读的 C 代码，建立指令到 C 语句的映射关系。',
-    icon: Cpu,
-    color: 'brand',
+    title: 'Ghidra 提升',
+    desc: '使用 Ghidra Headless Analyzer 将目标二进制反编译为伪 C 代码，提取函数签名、变量类型和控制流信息，作为用户编辑的起点。',
+    code: `# Ghidra Headless 反编译
+$GHIDRA_INSTALL_DIR/support/analyzeHeadless \\
+  /tmp/proj MyProject \\
+  -import target_binary \\
+  -postScript DecompileAll.java \\
+  -scriptPath ./scripts
+
+# 输出提升后的 C 代码
+==> ./lifted/process_input.c`,
   },
   {
-    step: '02',
     title: 'C 代码编辑',
-    desc: '用户在提升后的 C 代码上进行修改，就像修改普通源码一样直观。',
-    icon: Code2,
-    color: 'accent-green',
+    desc: '用户在熟悉的 C 代码层面修改漏洞：替换危险函数、增加边界检查、修复类型问题。编辑器提供语法高亮和实时编译反馈。',
+    code: `// 用户在提升后的 C 代码上直接修改
+
+- strcpy(buffer, input);           // 原始：无长度检查
++ strncpy(buffer, input, 63);      // 修改：限定最大长度
++ buffer[63] = '\\0';               // 修改：确保终止符`,
   },
   {
-    step: '03',
     title: 'AST Diff 提取',
-    desc: '对修改前后的 C 代码进行抽象语法树对比，提取最小语义变更集。',
-    icon: GitCompare,
-    color: 'accent-purple',
+    desc: '对比修改前后 C 代码的抽象语法树，精确识别被替换的函数调用、新增的语句和修改的参数，生成结构化的最小修改集。',
+    code: `# AST Diff 输出（结构化修改集）
+{
+  "function": "process_input",
+  "changes": [
+    {
+      "type": "replace_call",
+      "old": "strcpy(buf, input)",
+      "new": "strncpy(buf, input, 63)",
+      "line": 11
+    },
+    {
+      "type": "insert_stmt",
+      "stmt": "buffer[63] = '\\0'",
+      "after_line": 11
+    }
+  ]
+}`,
   },
   {
-    step: '04',
-    title: '指令级映射',
-    desc: '将 AST 级别的变更映射回原始二进制的指令级别，确定需要修改的指令范围。',
-    icon: Layers,
-    color: 'accent-orange',
+    title: '指令映射',
+    desc: '将 C 层修改映射为具体的 x86-64 / ARM64 指令变化：替换 call 目标、插入参数传递指令、生成新的机器码。',
+    code: `# 指令级映射结果
+
+- call    strcpy                # E8 xx xx xx xx
++ mov     rdx, 63               # 新增：长度参数
++ call    strncpy               # 替换 call 目标
++ mov     byte [rbp+0x0F], 0    # 新增：终止符写入`,
   },
   {
-    step: '05',
-    title: 'Trampoline / 直接替换',
-    desc: '根据修改大小选择策略：小修改直接替换指令，大修改生成 trampoline 跳板。',
-    icon: FileCode,
-    color: 'accent-cyan',
+    title: 'Trampoline 写入',
+    desc: '当原位置空间不足以容纳新指令时，在代码洞（code cave）中放置补丁逻辑，通过跳转 trampoline 衔接执行流，最后回写二进制。',
+    code: `# 补丁注入流程
+
+1. 在 .text 段寻找足够大的 code cave
+2. 将新指令序列写入 cave（patch_stub）
+3. 在原函数入口写入 JMP patch_stub
+4. stub 执行完毕后 JMP 回原函数继续执行
+5. 校验：checksum + 反汇编验证 + 功能测试
+
+# 输出修补后的二进制
+==> target_binary.patched`,
   },
 ];
 
+const tutorials = [
+  {
+    title: '启动 Dilipa',
+    desc: 'Dilipa 提供 Web UI 和命令行两种使用方式，以下演示典型的 Web 工作流。',
+    code: `# 克隆仓库
+git clone https://github.com/bininsight/dilipa.git
+cd dilipa
+
+# 使用 Docker Compose 启动（内含 Ghidra 服务）
+docker compose up -d
+
+# 打开浏览器访问
+# http://localhost:3000`,
+  },
+  {
+    title: '导入目标二进制',
+    desc: '上传需要分析的 ELF 二进制文件，Dilipa 会自动调用 Ghidra 完成反编译和提升。',
+    code: `# Web UI 操作
+1. 点击「导入目标」，选择 ELF 二进制文件
+2. 选择目标架构（x86-64 / ARM64）
+3. 等待 Ghidra 分析完成（通常 10-60 秒）
+4. 在函数列表中选择要修补的函数
+
+# 命令行方式
+dilipa lift ./target_binary --func process_input \\
+  --output ./lifted/process_input.c`,
+  },
+  {
+    title: '编辑 C 代码并应用补丁',
+    desc: '在提升的 C 代码上修改漏洞，预览 AST Diff 和指令映射，确认后生成补丁二进制。',
+    code: `# 命令行一键流程
+dilipa patch ./target_binary \\
+  --func process_input \\
+  --edit ./my_fix.c \\
+  --output ./target_binary.patched
+
+# 输出：
+# [1/4] Ghidra 提升完成
+# [2/4] AST Diff: 2 changes detected
+# [3/4] 指令映射: strcpy -> strncpy (+2 insns)
+# [4/4] Trampoline 注入完成 (cave @ 0x401a20)
+# Done: target_binary.patched (verified OK)`,
+  },
+];
+
+const faqs = [
+  {
+    q: 'Dilipa 和 Mutagen 有什么区别？',
+    a: 'Mutagen 是一键式自动化工具，自动发现漏洞并生成补丁，适合批量扫描和快速修复；Dilipa 是手动微补丁实验台，需要用户自己识别漏洞、编辑 C 代码，重点是理解「C 层修改如何映射到指令层」的完整原理。两者互补：先用 Mutagen 定位问题，再用 Dilipa 深入理解和精细修补。',
+  },
+  {
+    q: '为什么 Ghidra 提升的 C 代码看起来很奇怪？',
+    a: '反编译是重建过程，不是源码还原。变量可能被命名为 local_xx、类型推断可能不精确、控制流可能被重组。这是正常现象——Dilipa 允许你在编辑前重命名变量和修正类型，提升后的代码越准确，补丁映射质量越高。',
+  },
+  {
+    q: 'Trampoline 注入会不会破坏二进制？',
+    a: 'Dilipa 在写入前会自动备份原文件，并在补丁后做三重校验：文件校验和对比、反汇编验证、以及可选的沙箱功能测试。如果校验失败会自动回滚。复杂加壳或签名校验的程序可能需要额外处理。',
+  },
+  {
+    q: '支持 ARM 架构吗？',
+    a: '当前实验版本完整支持 x86-64，ARM64 的指令映射模块在开发中。架构相关逻辑集中在指令映射层，Ghidra 提升和 AST Diff 部分与架构无关。',
+  },
+];
+
+function TerminalMock() {
+  return (
+    <div className="u-panel overflow-hidden">
+      <div className="px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-code-header)]">
+        <span className="font-mono text-[11px] text-[var(--text-muted)]">
+          dilipa patch --preview
+        </span>
+      </div>
+      <div className="p-5 font-mono text-[12px] leading-[1.9]">
+        <div className="text-[var(--text-soft)]">[1/4] Ghidra 提升完成</div>
+        <div className="text-brand-400">[2/4] AST Diff: 2 changes detected</div>
+        <div className="text-[var(--text-soft)]">      replace_call strcpy → strncpy</div>
+        <div className="text-[var(--text-soft)]">      insert_stmt buffer[63] = &apos;\0&apos;</div>
+        <div className="text-brand-400">[3/4] 指令映射 (+2 insns)</div>
+        <div className="text-accent-orange">      code cave @ 0x401a20 · 24 bytes</div>
+        <div className="text-accent-green">[4/4] Trampoline 注入完成</div>
+        <div className="text-[var(--text-muted)] my-1">{'─'.repeat(42)}</div>
+        <div className="text-accent-green">Done: target_binary.patched (verified OK)</div>
+      </div>
+    </div>
+  );
+}
+
 export default function DilipaPage() {
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-bg-soft border-b border-border">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/10 via-transparent to-brand-700/10" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent-purple/5 rounded-full blur-3xl" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-8">
-            <Link href="/" className="hover:text-white transition-colors">
-              首页
-            </Link>
-            <ChevronRight size={14} />
-            <Link href="/tools" className="hover:text-white transition-colors">
-              工具下载
-            </Link>
-            <ChevronRight size={14} />
-            <span className="text-accent-purple">Dilipa</span>
+    <div>
+      {/* Hero */}
+      <section className="border-b border-[var(--border)]">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-8 pb-12">
+          <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)] mb-8">
+            <Link href="/" className="hover:text-[var(--text)] transition-colors">首页</Link>
+            <span className="text-[var(--border-soft)]">/</span>
+            <Link href="/tools" className="hover:text-[var(--text)] transition-colors">工具下载</Link>
+            <span className="text-[var(--border-soft)]">/</span>
+            <span className="text-[var(--brand-500)]">Dilipa</span>
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-start gap-8">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-purple to-purple-700 flex items-center justify-center shadow-lg shadow-accent-purple/20">
-                  <Target size={32} className="text-white" />
-                </div>
-                <span className="px-3 py-1 bg-brand-500/15 text-brand-300 text-sm font-semibold rounded-full border border-brand-500/30">
-                  手动式
-                </span>
-              </div>
+          <div className="flex items-center gap-3 mb-5">
+            <h1 className="u-display text-4xl md:text-5xl">Dilipa</h1>
+            <span className="u-tag">手动式</span>
+          </div>
+          <p className="font-mono text-[13px] text-[var(--brand-500)] mb-4">
+            BINARY MICRO-PATCHING WORKBENCH · C-LEVEL EDITING
+          </p>
+          <p className="text-[15px] md:text-base text-[var(--text-muted)] max-w-2xl leading-relaxed mb-8">
+            把二进制补丁表达为对提升后 C 代码的编辑。用户修改 C 代码，
+            系统通过 AST 对比提取最小修改集，自动映射回指令级修改——
+            直观理解「改了什么 C 代码，二进制里变成了什么」。
+          </p>
 
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">Dilipa</h1>
-              <p className="text-xl text-accent-purple mb-4">手动微补丁实验台 · 把二进制补丁表达为 C 代码编辑</p>
-              <p className="text-gray-400 max-w-2xl leading-relaxed mb-8">
-                直接改汇编太繁琐？Dilipa 让你在提升后的 C 代码上编辑补丁，系统自动通过 AST 对比
-                提取最小修改集，再映射回指令级修改。直观理解"改了什么 C 代码，二进制里变成了什么"。
-              </p>
-
-              <div className="flex flex-wrap gap-4">
-                <a
-                  href="https://github.com/bininsight/dilipa"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-accent-purple hover:bg-accent-purple/80 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-accent-purple/25"
-                >
-                  <Github size={18} />
-                  GitHub 仓库
-                </a>
-                <a
-                  href="#demo"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-bg-card hover:bg-bg-hover border border-border text-white font-semibold rounded-xl transition-colors"
-                >
-                  <Play size={18} />
-                  在线概念演示
-                </a>
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-3">
+            <a
+              href="https://github.com/bininsight/dilipa"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="u-btn u-btn-primary"
+            >
+              GitHub 仓库
+              <span className="font-mono" aria-hidden="true">→</span>
+            </a>
+            <Link href="#demo" className="u-btn u-btn-ghost">
+              查看概念演示
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Introduction */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+      {/* 工具介绍 */}
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-16 md:py-20">
+        <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-start">
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-6">工具介绍</h2>
-            <div className="space-y-6">
-              <div>
-                <h3 className="font-semibold text-lg mb-2 text-accent-purple">核心理念</h3>
-                <p className="text-gray-400 leading-relaxed">
-                  二进制到 C 代码提升 → 用户编辑补丁 → AST 对比提取最小补丁 → 映射回指令级修改。
-                  让二进制补丁工作从"汇编级别"提升到"C 代码级别"，大幅降低门槛。
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2 text-brand-400">解决的问题</h3>
-                <p className="text-gray-400 leading-relaxed">
-                  直接修改汇编指令繁琐且容易出错，需要精确计算偏移、处理指令长度、维护相对地址。
-                  Dilipa 让你用熟悉的 C 语法表达补丁意图，系统自动处理底层的指令级细节。
-                </p>
-              </div>
+            <p className="u-eyebrow mb-4">Overview</p>
+            <h2 className="u-display text-2xl md:text-3xl mb-5">工具介绍</h2>
+            <p className="text-[14px] text-[var(--text-muted)] leading-relaxed mb-6">
+              传统二进制补丁直接操作机器码，门槛高且容易出错。Dilipa 的核心思路是
+              <span className="text-[var(--text)]">「提升 → 编辑 → 映射」</span>：
+              先把二进制反编译为可读的 C 代码，让安全分析人员在熟悉的抽象层上修改，
+              再由工具自动完成 C 层修改到指令层修改的精确映射。
+            </p>
+            <div className="border-t border-[var(--border)]">
+              {[
+                ['定位', '在 Ghidra 提升的 C 代码中定位漏洞行'],
+                ['编辑', '像写普通 C 代码一样替换危险调用'],
+                ['映射', 'AST Diff 自动生成指令级补丁'],
+              ].map(([k, v]) => (
+                <div key={k} className="grid grid-cols-[48px_64px_1fr] gap-3 py-3 border-b border-[var(--border)] items-baseline">
+                  <span className="u-flow-tick" aria-hidden="true" />
+                  <span className="font-mono text-[12px] text-[var(--brand-500)]">{k}</span>
+                  <span className="text-[13px] text-[var(--text-muted)]">{v}</span>
+                </div>
+              ))}
             </div>
           </div>
-
-          <div className="bg-bg-card border border-border rounded-2xl p-6">
-            <div className="text-xs text-gray-500 font-mono mb-3">dilipa patch --diff patch.diff target.bin</div>
-            <div className="bg-[#0d1117] rounded-lg p-4 font-mono text-sm space-y-2">
-              <div className="text-gray-400">[INFO] Loading target binary...</div>
-              <div className="text-gray-400">[INFO] Decompiling with Ghidra...</div>
-              <div className="text-brand-300">[LIFT] Lifted 38 functions to C</div>
-              <div className="text-accent-purple">[DIFF] Parsing C diff...</div>
-              <div className="text-accent-purple">[DIFF] 2 AST changes detected</div>
-              <div className="text-accent-orange">[MAP] Mapping to instruction level...</div>
-              <div className="text-accent-green">[PATCH] Strategy: direct replacement</div>
-              <div className="text-accent-green">[PATCH] 6 instructions modified</div>
-              <div className="text-accent-green">[VERIFY] Verification: PASS</div>
-              <div className="text-white mt-2">{'─'.repeat(40)}</div>
-              <div className="text-white">
-                Output: <span className="text-accent-green">target_patched.bin</span>
-              </div>
-              <div className="text-gray-400">Patch report: ./dilipa_patch_report.json</div>
-            </div>
-          </div>
+          <TerminalMock />
         </div>
       </section>
 
-      {/* Principle */}
-      <section className="bg-bg-soft border-y border-border py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-center">原理讲解</h2>
-          <p className="text-gray-400 text-center max-w-2xl mx-auto mb-12">
-            从二进制到 C 代码，再从 C 代码修改回到二进制补丁，五个步骤完成完整映射
-          </p>
+      {/* 工作原理：编号 + 箭头串联 */}
+      <section className="border-y border-[var(--border)] bg-[var(--bg-soft)]">
+        <div className="max-w-4xl mx-auto px-5 sm:px-8 py-16 md:py-20">
+          <p className="u-eyebrow mb-4">Pipeline</p>
+          <h2 className="u-display text-2xl md:text-3xl mb-10">工作原理</h2>
 
-          <div className="relative">
-            {/* Connection line */}
-            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-500 via-accent-purple to-accent-cyan opacity-20 -translate-y-1/2" />
-
-            <div className="grid md:grid-cols-5 gap-6 relative">
-              {principleSteps.map((step, idx) => {
-                const Icon = step.icon;
-                const colorClasses: Record<string, string> = {
-                  brand: 'bg-brand-500/15 text-brand-400 border-brand-500/30',
-                  'accent-green': 'bg-accent-green/15 text-accent-green border-accent-green/30',
-                  'accent-purple': 'bg-accent-purple/15 text-accent-purple border-accent-purple/30',
-                  'accent-orange': 'bg-accent-orange/15 text-accent-orange border-accent-orange/30',
-                  'accent-cyan': 'bg-accent-cyan/15 text-accent-cyan border-accent-cyan/30',
-                };
-                return (
-                  <div key={step.step} className="relative">
-                    <div className="bg-bg-card border border-border rounded-xl p-5 h-full">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorClasses[step.color]} border`}>
-                          <Icon size={20} />
-                        </div>
-                        <span className="text-xs font-mono text-gray-600">Step {step.step}</span>
-                      </div>
-                      <h3 className="font-bold mb-2 text-sm">{step.title}</h3>
-                      <p className="text-xs text-gray-400 leading-relaxed">{step.desc}</p>
-                    </div>
-                    {idx < principleSteps.length - 1 && (
-                      <div className="hidden md:block absolute top-1/2 -right-3 -translate-y-1/2 z-10">
-                        <ArrowRight size={16} className="text-gray-600" />
-                      </div>
-                    )}
+          <div>
+            {principleSteps.map((step, idx) => (
+              <div key={step.title}>
+                <div className="flex items-baseline gap-4 mb-2">
+                  <span className="u-flow-tick" aria-hidden="true" />
+                  <h3 className="text-[16px] font-semibold">{step.title}</h3>
+                </div>
+                <p className="text-[13px] text-[var(--text-muted)] leading-relaxed mb-4 pl-9">
+                  {step.desc}
+                </p>
+                <div className="pl-9 mb-2">
+                  <CodeBlock code={step.code} language="bash" showLineNumbers={false} />
+                </div>
+                {idx < principleSteps.length - 1 && (
+                  <div className="pl-9 py-3 text-[var(--text-soft)]">
+                    <span className="font-mono" aria-hidden="true">↓</span>
                   </div>
-                );
-              })}
-            </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Interactive Demo */}
-      <section id="demo" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent-purple/10 border border-accent-purple/20 text-accent-purple text-sm font-medium mb-4">
-            <Sparkles size={14} />
-            概念演示版
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">在线概念演示</h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            点击"应用补丁"，观察 C 代码层面的修改如何对应到汇编指令层面的变化
-          </p>
-        </div>
-
+      {/* 交互演示 */}
+      <section id="demo" className="max-w-5xl mx-auto px-5 sm:px-8 py-16 md:py-20 scroll-mt-24">
+        <p className="u-eyebrow mb-4">Interactive Demo</p>
+        <h2 className="u-display text-2xl md:text-3xl mb-3">交互式概念演示</h2>
+        <p className="text-sm text-[var(--text-muted)] mb-8 max-w-2xl leading-relaxed">
+          下面用一个最小的 strcpy 栈溢出例子，完整演示 C 层编辑到汇编指令变化的映射。
+          点击「应用补丁」查看双层 diff。
+        </p>
         <DilipaDemo />
-
-        <div className="mt-6 p-4 bg-bg-card border border-dashed border-border rounded-xl text-center">
-          <p className="text-sm text-gray-400">
-            这是概念演示版，展示了 Dilipa 的核心思路。完整功能请下载 Dilipa 工具，
-            支持加载任意二进制、自由编辑提升后的 C 代码、生成可执行的补丁文件。
-          </p>
-        </div>
       </section>
 
-      {/* Tutorial */}
-      <section className="bg-bg-soft border-y border-border py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold mb-10 text-center">使用教程</h2>
+      {/* 使用教程 */}
+      <section className="border-y border-[var(--border)] bg-[var(--bg-soft)]">
+        <div className="max-w-4xl mx-auto px-5 sm:px-8 py-16 md:py-20">
+          <p className="u-eyebrow mb-4">Walkthrough</p>
+          <h2 className="u-display text-2xl md:text-3xl mb-10">使用教程</h2>
 
           <div className="space-y-10">
-            {/* Step 1 */}
-            <div className="relative step-line">
-              <div className="flex gap-5">
-                <div className="w-8 h-8 rounded-full bg-accent-purple flex items-center justify-center text-white text-sm font-bold flex-shrink-0 z-10">
-                  1
+            {tutorials.map((t) => (
+              <div key={t.title}>
+                <div className="flex items-baseline gap-4 mb-2">
+                  <span className="u-flow-tick" aria-hidden="true" />
+                  <h3 className="text-[16px] font-semibold">{t.title}</h3>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold mb-3">加载二进制文件</h3>
-                  <p className="text-gray-400 mb-4">
-                    使用 Dilipa 加载目标二进制文件，系统会自动调用 Ghidra 进行反编译并提升为 C 代码。
-                  </p>
-                  <CodeBlock
-                    code={`# 加载二进制文件并生成提升后的 C 代码
-dilipa load ./target_binary --output ./project
-
-# 指定函数范围（可选，加快加载速度）
-dilipa load ./target_binary --funcs process_input,main --output ./project
-
-# 查看加载结果
-ls ./project/
-# lifted/       - 提升后的 C 代码（每个函数一个 .c 文件）
-# mapping.json  - 指令到 C 语句的映射关系
-# target.gpr    - Ghidra 项目文件`}
-                    language="bash"
-                    title="终端 - 加载二进制"
-                  />
+                <p className="text-[13px] text-[var(--text-muted)] mb-4 pl-9">{t.desc}</p>
+                <div className="pl-9">
+                  <CodeBlock code={t.code} language="bash" showLineNumbers={false} />
                 </div>
               </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="relative step-line">
-              <div className="flex gap-5">
-                <div className="w-8 h-8 rounded-full bg-accent-purple flex items-center justify-center text-white text-sm font-bold flex-shrink-0 z-10">
-                  2
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold mb-3">在提升后的 C 代码上做修改</h3>
-                  <p className="text-gray-400 mb-4">
-                    编辑 lifted/ 目录下的 C 代码文件，就像修改普通源码一样。支持任意编辑器或 IDE。
-                  </p>
-                  <CodeBlock
-                    code={`// 修改前：lifted/process_input.c
-void process_input(char *input) {
-    char buffer[64];
-    strcpy(buffer, input);
-    printf("Input: %s\\n", buffer);
-}
-
-// 修改后：添加边界检查
-void process_input(char *input) {
-    char buffer[64];
-    strncpy(buffer, input, 63);  // 安全复制
-    buffer[63] = '\\0';           // 确保终止
-    printf("Input: %s\\n", buffer);
-}
-
-// 生成 diff（标准 git diff 格式）
-diff -u lifted/process_input.c modified/process_input.c > patch.diff`}
-                    language="c"
-                    title="编辑提升后的 C 代码"
-                    highlightLines={[9, 10]}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div>
-              <div className="flex gap-5">
-                <div className="w-8 h-8 rounded-full bg-accent-green flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                  3
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold mb-3">验证映射结果</h3>
-                  <p className="text-gray-400 mb-4">
-                    应用补丁并验证：检查指令级映射是否正确，验证补丁后二进制的功能完整性。
-                  </p>
-                  <CodeBlock
-                    code={`# 应用补丁
-dilipa patch ./project --diff patch.diff --output patched.bin
-
-# 查看补丁详情
-dilipa inspect ./project patched.bin --diff patch.diff
-# === Patch Report ===
-# Function: process_input
-# AST changes: 2 (FunctionCall strcpy->strncpy, +Assignment)
-# Instructions modified: 6
-# Strategy: direct replacement
-# Trampolines: 0
-# Bytes added: 8
-
-# 验证功能（运行测试用例）
-dilipa verify ./project patched.bin --tests test_cases.json
-# Test 1: normal input ....... PASS
-# Test 2: boundary input ..... PASS
-# Test 3: overflow input ..... PASS (blocked)
-
-# 反汇编对比验证
-dilipa diff-asm ./project patched.bin --func process_input`}
-                    language="bash"
-                    title="终端 - 验证补丁"
-                  />
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Download */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent-purple/30 via-bg-card to-brand-700/20 border border-border p-10 md:p-14 text-center">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1/2 bg-accent-purple/10 blur-3xl rounded-full" />
-          <div className="relative">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">获取 Dilipa</h2>
-            <p className="text-gray-400 mb-8 max-w-xl mx-auto">
-              完整功能请访问 GitHub 仓库下载，支持 Linux / macOS / WSL2
+      {/* FAQ */}
+      <section className="max-w-4xl mx-auto px-5 sm:px-8 py-16 md:py-20">
+        <p className="u-eyebrow mb-4">FAQ</p>
+        <h2 className="u-display text-2xl md:text-3xl mb-8">常见问题</h2>
+        <div className="border-t border-[var(--border)]">
+          {faqs.map((faq, idx) => (
+            <details key={idx} className="border-b border-[var(--border)] group">
+              <summary className="flex items-baseline gap-4 py-5 cursor-pointer list-none">
+                <span className="u-flow-tick u-flow-tick--inline" aria-hidden="true" />
+                <span className="flex-1 text-[14.5px] font-medium group-open:text-[var(--brand-500)] transition-colors">
+                  {faq.q}
+                </span>
+                <span className="font-mono text-[var(--text-soft)] text-xs group-open:rotate-45 transition-transform">
+                  +
+                </span>
+              </summary>
+              <p className="pb-5 pl-9 pr-6 text-[13px] text-[var(--text-muted)] leading-relaxed">
+                {faq.a}
+              </p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="border-t border-[var(--border)]">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-14 md:py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <h2 className="u-display text-2xl md:text-3xl mb-2">在 C 层面修补二进制</h2>
+            <p className="text-sm text-[var(--text-muted)]">
+              从 Ghidra 提升到 trampoline 注入，完整理解微补丁生成的每一步。
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <a
-                href="https://github.com/bininsight/dilipa"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-8 py-3 bg-white text-bg font-bold rounded-xl hover:bg-gray-100 transition-colors shadow-xl"
-              >
-                <Github size={18} />
-                访问 GitHub
-                <ArrowRight size={16} />
-              </a>
-              <Link
-                href="/tools"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-bg-card hover:bg-bg-hover border border-border text-white font-semibold rounded-xl transition-colors"
-              >
-                返回工具列表
-              </Link>
-            </div>
+          </div>
+          <div className="flex flex-wrap gap-3 flex-shrink-0">
+            <a
+              href="https://github.com/bininsight/dilipa"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="u-btn u-btn-primary"
+            >
+              访问 GitHub
+              <span className="font-mono" aria-hidden="true">→</span>
+            </a>
+            <Link href="/tools" className="u-btn u-btn-ghost">
+              <span className="font-mono" aria-hidden="true">←</span>
+              返回工具列表
+            </Link>
           </div>
         </div>
       </section>

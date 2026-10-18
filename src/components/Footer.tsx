@@ -1,69 +1,93 @@
 import Link from 'next/link';
-import { Binary, Github, Heart, Shield } from 'lucide-react';
+import { TermsButton } from './TermsDrawer';
+
+const columns = [
+  {
+    title: '学习路径',
+    links: [
+      { href: '/learn/step1', label: '解包与识别' },
+      { href: '/learn/step2', label: '静态分析' },
+      { href: '/learn/step3', label: '路径探索' },
+      { href: '/learn/step4', label: '防护策略' },
+    ],
+  },
+  {
+    title: '工具 / 案例',
+    links: [
+      { href: '/tools/mutagen', label: 'Mutagen 一键工具' },
+      { href: '/tools/dilipa', label: 'Dilipa 微补丁台' },
+      { href: '/cases', label: '实战案例库' },
+    ],
+  },
+  {
+    title: '关于',
+    links: [
+      { href: '/terms', label: '使用条款', terms: true },
+      { href: 'https://github.com/yghign/BinInsight', label: 'GitHub 仓库', external: true },
+    ],
+  },
+];
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border bg-bg-card/50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+    <footer className="border-t border-[var(--border)]">
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-14">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-accent-purple flex items-center justify-center">
-                <Binary size={18} className="text-white" />
-              </div>
-              <span className="font-bold">BinInsight</span>
-            </Link>
-            <p className="text-sm text-[var(--text-soft)] leading-relaxed">
-              逆向工程与漏洞防护学习平台<br />
-              从入门到进阶，洞见二进制世界
+            <div className="flex items-center gap-2.5 mb-4">
+              <span className="w-6 h-6 border border-[var(--brand-500)] text-[var(--brand-500)] flex items-center justify-center font-mono text-[11px] font-bold leading-none">
+                B
+              </span>
+              <span className="font-semibold text-[15px] tracking-tight">BinInsight</span>
+            </div>
+            <p className="text-[13px] leading-relaxed text-[var(--text-soft)]">
+              逆向工程与漏洞防护学习平台
+              <br />
+              洞见二进制，从看见每一条指令开始。
             </p>
           </div>
 
-          <div>
-            <h4 className="text-sm font-semibold text-[var(--text-muted)] mb-3">学习路径</h4>
-            <ul className="space-y-2 text-sm text-[var(--text-soft)]">
-              <li><Link href="/learn/step1" className="hover:text-brand-400 transition-colors">解包与识别</Link></li>
-              <li><Link href="/learn/step2" className="hover:text-brand-400 transition-colors">静态分析</Link></li>
-              <li><Link href="/learn/step3" className="hover:text-brand-400 transition-colors">路径探索</Link></li>
-              <li><Link href="/learn/step4" className="hover:text-brand-400 transition-colors">防护策略</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-semibold text-[var(--text-muted)] mb-3">工具 & 案例</h4>
-            <ul className="space-y-2 text-sm text-[var(--text-soft)]">
-              <li><Link href="/tools/mutagen" className="hover:text-brand-400 transition-colors">Mutagen 一键工具</Link></li>
-              <li><Link href="/tools/dilipa" className="hover:text-brand-400 transition-colors">Dilipa 微补丁台</Link></li>
-              <li><Link href="/cases" className="hover:text-brand-400 transition-colors">实战案例库</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-semibold text-[var(--text-muted)] mb-3">关于</h4>
-            <ul className="space-y-2 text-sm text-[var(--text-soft)]">
-              <li><Link href="/terms" className="hover:text-brand-400 transition-colors">使用条款</Link></li>
-              <li>
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-brand-400 transition-colors flex items-center gap-1"
-                >
-                  <Github size={14} /> GitHub
-                </a>
-              </li>
-            </ul>
-          </div>
+          {columns.map((col) => (
+            <div key={col.title}>
+              <h4 className="u-eyebrow mb-4">{col.title}</h4>
+              <ul className="space-y-2.5">
+                {col.links.map((link) =>
+                  'terms' in link && link.terms ? (
+                    <li key={link.href}>
+                      <TermsButton className="text-[13px] text-[var(--text-soft)] transition-colors hover:text-[var(--text)]">
+                        {link.label}
+                      </TermsButton>
+                    </li>
+                  ) : 'external' in link && link.external ? (
+                    <li key={link.href}>
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[13px] text-[var(--text-soft)] hover:text-[var(--text)] transition-colors"
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  ) : (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="text-[13px] text-[var(--text-soft)] hover:text-[var(--text)] transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  )
+                )}
+              </ul>
+            </div>
+          ))}
         </div>
 
-        <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-[var(--text-soft)]">
-          <p className="flex items-center gap-1">
-            <Shield size={12} />
-            仅供教育目的使用，请在授权范围内学习研究
-          </p>
-          <p className="flex items-center gap-1">
-            Made with <Heart size={12} className="text-accent-red" /> for security learners
-          </p>
+        <div className="mt-12 pt-6 border-t border-[var(--border)] flex flex-col sm:flex-row justify-between gap-2 text-xs text-[var(--text-soft)]">
+          <span className="font-mono">© 2024 BinInsight · 仅供教育与授权研究使用</span>
+          <span className="font-mono">REVERSE ENGINEERING / VULN MITIGATION</span>
         </div>
       </div>
     </footer>

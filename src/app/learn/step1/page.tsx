@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Unlock, FileCode, ArrowRight, Info, AlertTriangle, ChevronRight, BookOpen, Sparkles, Package, Hash } from 'lucide-react';
 import clsx from 'clsx';
 import ModeToggle, { type Mode } from '@/components/ModeToggle';
 import CodeBlock from '@/components/CodeBlock';
@@ -172,34 +171,29 @@ export default function Step1Page() {
   const currentField = elfHeaderFields.find((f) => f.name === selectedField) || elfHeaderFields[3];
 
   return (
-    <div className="space-y-12">
-      {/* Header Section */}
+    <div className="space-y-14">
+      {/* 页头 */}
       <section>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-brand-500/20 flex items-center justify-center">
-              <Unlock size={24} className="text-brand-400" />
-            </div>
-            <div>
-              <div className="text-xs font-mono text-brand-400 uppercase tracking-wider">Step 1</div>
-              <h2 className="text-2xl font-bold">解包与识别</h2>
-            </div>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-5">
+          <div>
+            <p className="u-eyebrow mb-2">File Identification</p>
+            <h2 className="u-display text-2xl md:text-[28px]">解包与识别</h2>
           </div>
           <ModeToggle mode={mode} onChange={setMode} />
         </div>
-        <p className="text-gray-400 leading-relaxed">
+        <p className="text-[15px] text-[var(--text-muted)] leading-relaxed max-w-3xl">
           拿到一个二进制文件，第一步永远是识别它的格式、架构和组成结构。
           就像拿到一个未知包裹，你需要先看看它是什么、从哪里来、里面装了什么。
         </p>
       </section>
 
-      {/* Section 1: What is ELF */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <FileCode size={20} className="text-brand-400" />
-          <h3 className="text-xl font-bold">ELF 文件结构</h3>
+      {/* 1.1 ELF 文件结构 */}
+      <section className="space-y-5">
+        <div className="flex items-baseline gap-3">
+          <span className="u-section-num">1.1</span>
+          <h3 className="text-lg md:text-xl font-semibold tracking-tight">ELF 文件结构</h3>
         </div>
-        <p className="text-gray-400 leading-relaxed pl-7">
+        <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
           ELF（Executable and Linkable Format）是 Linux/Unix 系统下标准的可执行文件格式。
           它就像一本书，有封面（Header）、目录（Section Headers）和各个章节（Sections）。
           {mode === 'advanced' && (
@@ -207,39 +201,39 @@ export default function Step1Page() {
           )}
         </p>
 
-        {/* Interactive ELF Section Explorer */}
-        <div className="bg-bg-card border border-border rounded-2xl overflow-hidden mt-6">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-bg-soft">
-            <div className="flex items-center gap-2">
-              <Info size={16} className="text-brand-400" />
-              <span className="text-sm font-medium">交互示例 · 点击左侧 section 查看详情</span>
-            </div>
-            <span className="text-xs text-gray-500">ELF Sections</span>
+        {/* 交互：ELF Section 浏览器 */}
+        <div className="u-panel overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-2.5 border-b border-[var(--border)] bg-[var(--bg-soft)]">
+            <span className="font-mono text-[11px] tracking-wider text-[var(--text-muted)]">
+              点击左侧 SECTION 查看详情
+            </span>
+            <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-soft)]">
+              elf sections
+            </span>
           </div>
 
           <div className="flex flex-col md:flex-row">
-            {/* Left: Section List */}
-            <div className="md:w-1/3 border-b md:border-b-0 md:border-r border-border bg-bg-soft/50">
-              <div className="p-4 space-y-1">
+            {/* 左：Section 列表 */}
+            <div className="md:w-1/3 border-b md:border-b-0 md:border-r border-[var(--border)]">
+              <div className="p-2 space-y-0.5">
                 {elfSections.map((section) => (
                   <button
                     key={section.name}
                     onClick={() => setSelectedSection(section.name)}
                     className={clsx(
-                      'w-full text-left px-3 py-2.5 rounded-lg transition-all flex items-center gap-2 group',
+                      'w-full text-left px-3 py-2 rounded-[4px] transition-colors flex items-center gap-2 border',
                       selectedSection === section.name
-                        ? 'bg-brand-600/20 border border-brand-500/40'
-                        : 'hover:bg-bg-hover border border-transparent'
+                        ? 'bg-brand-500/10 border-brand-500/40'
+                        : 'border-transparent hover:bg-[var(--bg-hover)]'
                     )}
                   >
-                    <ChevronRight
-                      size={14}
+                    <span
                       className={clsx(
-                        'transition-transform flex-shrink-0',
-                        selectedSection === section.name ? 'text-brand-400 rotate-90' : 'text-gray-600 group-hover:text-gray-400'
+                        'w-1 h-3.5 flex-shrink-0 transition-colors',
+                        selectedSection === section.name ? 'bg-[var(--brand-500)]' : 'bg-[var(--border-soft)]'
                       )}
                     />
-                    <span className={clsx('font-mono text-sm font-medium', section.color)}>
+                    <span className={clsx('font-mono text-[13px] font-medium', section.color)}>
                       {section.name}
                     </span>
                   </button>
@@ -247,35 +241,33 @@ export default function Step1Page() {
               </div>
             </div>
 
-            {/* Right: Section Detail */}
-            <div className="md:w-2/3 p-5">
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={clsx('text-xl font-mono font-bold', currentSection.color)}>
+            {/* 右：详情 */}
+            <div className="md:w-2/3 p-6">
+              <div className="mb-5">
+                <div className="flex items-center gap-2.5 mb-1.5">
+                  <span className={clsx('text-lg font-mono font-bold', currentSection.color)}>
                     {currentSection.name}
                   </span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-bg-hover text-gray-400">
-                    Section
-                  </span>
+                  <span className="u-tag">section</span>
                 </div>
-                <p className="text-gray-300 text-sm">{currentSection.description}</p>
+                <p className="text-[14px] text-[var(--text)]">{currentSection.description}</p>
               </div>
 
               <div className="space-y-3">
-                <div className="bg-bg-soft rounded-lg p-4 border border-border">
-                  <div className="text-xs text-brand-400 font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <BookOpen size={12} />
-                    常见内容
-                  </div>
-                  <p className="text-sm text-gray-300 leading-relaxed">{currentSection.content}</p>
+                <div className="border border-[var(--border)] rounded-md p-4">
+                  <div className="u-eyebrow mb-2">常见内容</div>
+                  <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">
+                    {currentSection.content}
+                  </p>
                 </div>
 
-                <div className="bg-accent-red/10 rounded-lg p-4 border border-accent-red/20">
-                  <div className="text-xs text-accent-red font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <AlertTriangle size={12} />
+                <div className="border border-accent-red/25 bg-accent-red/5 rounded-md p-4">
+                  <div className="font-mono text-[11px] tracking-wider mb-2 text-[var(--accent-red)]">
                     与漏洞的关系
                   </div>
-                  <p className="text-sm text-gray-300 leading-relaxed">{currentSection.vulnerability}</p>
+                  <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">
+                    {currentSection.vulnerability}
+                  </p>
                 </div>
               </div>
             </div>
@@ -283,32 +275,31 @@ export default function Step1Page() {
         </div>
       </section>
 
-      {/* Advanced Content: ELF Header */}
+      {/* 进阶：ELF Header */}
       {mode === 'advanced' && (
-        <section className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Hash size={20} className="text-accent-purple" />
-            <h3 className="text-xl font-bold">ELF Header 字段详解</h3>
+        <section className="space-y-5">
+          <div className="flex items-baseline gap-3">
+            <span className="u-section-num">1.2</span>
+            <h3 className="text-lg md:text-xl font-semibold tracking-tight">ELF Header 字段详解</h3>
           </div>
-          <p className="text-gray-400 leading-relaxed pl-7">
+          <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
             ELF 文件最开头是 ELF Header，它描述了文件的基本信息。
             使用 <code className="inline">readelf -h</code> 命令可以查看完整的 ELF Header。
             点击下方字段查看详细解释。
           </p>
 
-          {/* ELF Header Interactive */}
-          <div className="bg-bg-card border border-border rounded-2xl overflow-hidden mt-6">
-            <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-bg-soft">
-              <div className="flex items-center gap-2">
-                <Sparkles size={16} className="text-accent-purple" />
-                <span className="text-sm font-medium">进阶交互 · ELF Header 字段解析</span>
-              </div>
-              <span className="text-xs text-gray-500">readelf -h</span>
+          <div className="u-panel overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-2.5 border-b border-[var(--border)] bg-[var(--bg-soft)]">
+              <span className="font-mono text-[11px] tracking-wider text-[var(--text-muted)]">
+                进阶交互 · ELF HEADER 字段解析
+              </span>
+              <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-soft)]">
+                readelf -h
+              </span>
             </div>
 
             <div className="flex flex-col lg:flex-row">
-              {/* Left: readelf output */}
-              <div className="lg:w-1/2 border-b lg:border-b-0 lg:border-r border-border">
+              <div className="lg:w-1/2 border-b lg:border-b-0 lg:border-r border-[var(--border)]">
                 <CodeBlock
                   code={elfHeaderHex}
                   language="plaintext"
@@ -316,28 +307,26 @@ export default function Step1Page() {
                 />
               </div>
 
-              {/* Right: Field detail */}
-              <div className="lg:w-1/2 p-4 space-y-2">
-                <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">关键字段</div>
+              <div className="lg:w-1/2 p-3 space-y-1">
                 {elfHeaderFields.map((field) => (
                   <button
                     key={field.name}
                     onClick={() => setSelectedField(field.name)}
                     className={clsx(
-                      'w-full text-left px-3 py-2.5 rounded-lg transition-all border',
+                      'w-full text-left px-3 py-2.5 rounded-md transition-colors border',
                       selectedField === field.name
-                        ? 'bg-accent-purple/20 border-accent-purple/40'
-                        : 'bg-bg-soft/50 border-border hover:bg-bg-hover'
+                        ? 'bg-brand-500/10 border-brand-500/40'
+                        : 'border-transparent hover:bg-[var(--bg-hover)]'
                     )}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-sm text-accent-purple">{field.name}</span>
-                      <span className="text-xs text-gray-500 font-mono truncate ml-2">
+                      <span className="font-mono text-[13px] text-brand-400">{field.name}</span>
+                      <span className="text-[11px] text-[var(--text-soft)] font-mono truncate ml-2">
                         {field.value}
                       </span>
                     </div>
                     {selectedField === field.name && (
-                      <p className="text-xs text-gray-400 mt-2 leading-relaxed">
+                      <p className="text-[12px] text-[var(--text-muted)] mt-2 leading-relaxed">
                         {field.description}
                       </p>
                     )}
@@ -349,22 +338,24 @@ export default function Step1Page() {
         </section>
       )}
 
-      {/* Advanced Content: Firmware & binwalk */}
+      {/* 进阶：固件识别与 binwalk */}
       {mode === 'advanced' && (
-        <section className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Package size={20} className="text-accent-orange" />
-            <h3 className="text-xl font-bold">固件格式识别与 binwalk</h3>
+        <section className="space-y-5">
+          <div className="flex items-baseline gap-3">
+            <span className="u-section-num">1.3</span>
+            <h3 className="text-lg md:text-xl font-semibold tracking-tight">固件格式识别与 binwalk</h3>
           </div>
-          <p className="text-gray-400 leading-relaxed pl-7">
+          <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
             在 IoT 安全分析中，你拿到的往往不是 ELF 文件，而是完整的固件镜像。
             <code className="inline">binwalk</code> 是固件分析的瑞士军刀，它能通过文件签名识别出
             固件中嵌入的文件系统、压缩数据、引导程序等。
           </p>
 
-          <div className="bg-bg-card border border-border rounded-2xl overflow-hidden mt-4">
-            <div className="px-5 py-3 border-b border-border bg-bg-soft">
-              <span className="text-sm font-medium">binwalk 输出示例</span>
+          <div className="u-panel overflow-hidden">
+            <div className="px-5 py-2.5 border-b border-[var(--border)] bg-[var(--bg-soft)]">
+              <span className="font-mono text-[11px] tracking-wider text-[var(--text-muted)]">
+                binwalk 输出示例
+              </span>
             </div>
             <CodeBlock
               code={binwalkOutput}
@@ -373,33 +364,37 @@ export default function Step1Page() {
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 mt-4">
-            <div className="bg-bg-card border border-border rounded-xl p-5">
-              <div className="text-sm font-bold mb-2 text-accent-orange">常用 binwalk 命令</div>
-              <ul className="space-y-2 text-sm text-gray-400">
+          <div className="grid md:grid-cols-2 gap-px bg-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden">
+            <div className="bg-[var(--bg-card)] p-6">
+              <div className="font-mono text-[11px] tracking-wider mb-3 text-[var(--brand-500)]">
+                常用 binwalk 命令
+              </div>
+              <ul className="space-y-2.5 text-[13px] text-[var(--text-muted)]">
                 <li className="flex items-start gap-2">
-                  <ChevronRight size={14} className="text-gray-600 mt-0.5 flex-shrink-0" />
-                  <span><code className="inline">binwalk file.bin</code> - 扫描文件中的已知签名</span>
+                  <span className="font-mono text-[var(--text-soft)] mt-0.5">→</span>
+                  <span><code className="inline">binwalk file.bin</code> — 扫描文件中的已知签名</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <ChevronRight size={14} className="text-gray-600 mt-0.5 flex-shrink-0" />
-                  <span><code className="inline">binwalk -e file.bin</code> - 自动提取识别到的文件</span>
+                  <span className="font-mono text-[var(--text-soft)] mt-0.5">→</span>
+                  <span><code className="inline">binwalk -e file.bin</code> — 自动提取识别到的文件</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <ChevronRight size={14} className="text-gray-600 mt-0.5 flex-shrink-0" />
-                  <span><code className="inline">binwalk -M -e file.bin</code> - 递归提取（深入嵌套）</span>
+                  <span className="font-mono text-[var(--text-soft)] mt-0.5">→</span>
+                  <span><code className="inline">binwalk -M -e file.bin</code> — 递归提取（深入嵌套）</span>
                 </li>
               </ul>
             </div>
 
-            <div className="bg-bg-card border border-border rounded-xl p-5">
-              <div className="text-sm font-bold mb-2 text-accent-purple">SBOM / FBOM 概念</div>
-              <p className="text-sm text-gray-400 leading-relaxed">
-                <strong className="text-gray-300">SBOM</strong>（Software Bill of Materials，软件物料清单）
+            <div className="bg-[var(--bg-card)] p-6">
+              <div className="font-mono text-[11px] tracking-wider mb-3 text-[var(--brand-500)]">
+                SBOM / FBOM 概念
+              </div>
+              <p className="text-[13px] text-[var(--text-muted)] leading-relaxed mb-3">
+                <strong className="text-[var(--text)]">SBOM</strong>（Software Bill of Materials，软件物料清单）
                 是软件中包含的所有组件的清单，帮助追踪依赖和漏洞。
               </p>
-              <p className="text-sm text-gray-400 leading-relaxed mt-2">
-                <strong className="text-gray-300">FBOM</strong>（Firmware Bill of Materials，固件物料清单）
+              <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">
+                <strong className="text-[var(--text)]">FBOM</strong>（Firmware Bill of Materials，固件物料清单）
                 则是 SBOM 在固件领域的扩展，涵盖固件中的 bootloader、内核、文件系统、第三方库等所有组件。
               </p>
             </div>
@@ -407,17 +402,12 @@ export default function Step1Page() {
         </section>
       )}
 
-      {/* Next Step Button */}
-      <section className="pt-6 border-t border-border">
-        <div className="flex justify-end">
-          <Link
-            href="/learn/step2"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-brand-600/25"
-          >
-            下一步 · 静态分析
-            <ArrowRight size={18} />
-          </Link>
-        </div>
+      {/* 底部导航 */}
+      <section className="pt-6 border-t border-[var(--border)] flex justify-end">
+        <Link href="/learn/step2" className="u-btn u-btn-primary">
+          下一步 · 静态分析
+          <span className="font-mono" aria-hidden="true">→</span>
+        </Link>
       </section>
     </div>
   );

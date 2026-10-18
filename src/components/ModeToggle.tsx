@@ -1,7 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Sparkles, GraduationCap } from 'lucide-react';
 import clsx from 'clsx';
 
 export type Mode = 'beginner' | 'advanced';
@@ -12,33 +10,40 @@ interface ModeToggleProps {
   className?: string;
 }
 
+const options: { id: Mode; label: string }[] = [
+  { id: 'beginner', label: '新手' },
+  { id: 'advanced', label: '进阶' },
+];
+
 export default function ModeToggle({ mode, onChange, className }: ModeToggleProps) {
   return (
-    <div className={clsx('inline-flex items-center bg-bg-card border border-border rounded-full p-1', className)}>
-      <button
-        onClick={() => onChange('beginner')}
-        className={clsx(
-          'flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all',
-          mode === 'beginner'
-            ? 'bg-brand-600 text-white shadow-sm'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-bright)]'
-        )}
-      >
-        <GraduationCap size={15} />
-        新手模式
-      </button>
-      <button
-        onClick={() => onChange('advanced')}
-        className={clsx(
-          'flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-all',
-          mode === 'advanced'
-            ? 'bg-accent-purple text-white shadow-sm'
-            : 'text-[var(--text-muted)] hover:text-[var(--text-bright)]'
-        )}
-      >
-        <Sparkles size={15} />
-        进阶模式
-      </button>
+    <div
+      className={clsx(
+        'inline-flex items-center border border-[var(--border)] rounded-md p-0.5 bg-[var(--bg-soft)]',
+        className
+      )}
+      role="tablist"
+      aria-label="难度模式"
+    >
+      {options.map((opt) => {
+        const active = mode === opt.id;
+        return (
+          <button
+            key={opt.id}
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(opt.id)}
+            className={clsx(
+              'px-3.5 py-1.5 rounded-[4px] font-mono text-[12px] tracking-wide transition-colors',
+              active
+                ? 'bg-[var(--bg-card)] text-[var(--brand-500)] border border-[var(--border)]'
+                : 'border border-transparent text-[var(--text-soft)] hover:text-[var(--text-muted)]'
+            )}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

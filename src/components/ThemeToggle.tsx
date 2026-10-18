@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sun, Moon, Palette, Check } from 'lucide-react';
+import { Sun, Moon, Check } from 'lucide-react';
 
 const accents = [
-  { id: 'blue', name: '经典蓝', color: '#3b82f6' },
-  { id: 'green', name: '黑客绿', color: '#10b981' },
-  { id: 'purple', name: '赛博紫', color: '#a855f7' },
-  { id: 'orange', name: '烈焰橙', color: '#f97316' },
-  { id: 'cyan', name: '深邃青', color: '#06b6d4' },
+  { id: 'blue', name: '信号蓝', color: '#2f6bff' },
+  { id: 'green', name: '终端绿', color: '#00c853' },
+  { id: 'purple', name: '霓虹紫', color: '#9d5cff' },
+  { id: 'orange', name: '热熔橙', color: '#ff5a1f' },
+  { id: 'cyan', name: '深空青', color: '#00b8d9' },
 ];
 
 const modes = [
@@ -57,23 +57,20 @@ export default function ThemeToggle() {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-bright)] hover:bg-bg-hover transition-colors text-sm"
+        className="flex items-center justify-center w-8 h-8 text-[var(--text-muted)] hover:text-[var(--text)] transition-colors"
         aria-label="切换主题"
       >
         {mode === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
-        <span className="hidden sm:inline">主题</span>
       </button>
 
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
 
-          <div className="absolute right-0 top-full mt-2 w-52 bg-bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden">
+          <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg z-50 overflow-hidden">
             {/* 模式切换 */}
-            <div className="px-3 py-2 text-xs text-[var(--text-soft)] border-b border-border">
-              显示模式
-            </div>
-            <div className="flex gap-1 p-2">
+            <div className="u-eyebrow px-3.5 pt-3 pb-2">显示模式</div>
+            <div className="flex gap-1 px-2 pb-2">
               {modes.map((m) => {
                 const Icon = m.icon;
                 const isActive = mode === m.id;
@@ -81,13 +78,13 @@ export default function ThemeToggle() {
                   <button
                     key={m.id}
                     onClick={() => handleModeChange(m.id)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-[12.5px] font-medium transition-colors ${
                       isActive
-                        ? 'bg-brand-500/20 text-brand-400 border border-brand-500/40'
-                        : 'text-[var(--text-muted)] hover:bg-bg-hover border border-transparent'
+                        ? 'bg-[var(--bg-hover)] text-[var(--brand-500)]'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text)]'
                     }`}
                   >
-                    <Icon size={14} />
+                    <Icon size={13} />
                     {m.name}
                   </button>
                 );
@@ -95,23 +92,23 @@ export default function ThemeToggle() {
             </div>
 
             {/* 强调色 */}
-            <div className="px-3 py-2 text-xs text-[var(--text-soft)] border-t border-border">
-              强调色
+            <div className="u-eyebrow px-3.5 pt-2 pb-2 border-t border-[var(--border)]">强调色</div>
+            <div className="px-2 pb-2">
+              {accents.map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => handleAccentChange(a.id)}
+                  className="w-full flex items-center gap-2.5 px-1.5 py-2 hover:bg-[var(--bg-hover)] rounded-md transition-colors text-left"
+                >
+                  <span
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: a.color }}
+                  />
+                  <span className="flex-1 text-[13px] text-[var(--text-muted)]">{a.name}</span>
+                  {accent === a.id && <Check size={13} className="text-[var(--brand-500)]" />}
+                </button>
+              ))}
             </div>
-            {accents.map((a) => (
-              <button
-                key={a.id}
-                onClick={() => handleAccentChange(a.id)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover transition-colors text-left"
-              >
-                <div
-                  className="w-5 h-5 rounded-full border-2 border-[var(--border-soft)]"
-                  style={{ backgroundColor: a.color }}
-                />
-                <span className="flex-1 text-sm text-[var(--text-muted)]">{a.name}</span>
-                {accent === a.id && <Check size={14} className="text-brand-500" />}
-              </button>
-            ))}
           </div>
         </>
       )}
