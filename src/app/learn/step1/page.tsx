@@ -212,6 +212,31 @@ export default function Step1Page() {
             </span>
           </div>
 
+          {/* 新手浏览路线 */}
+          <div className="px-5 py-3 border-b border-[var(--border)] flex flex-wrap items-center gap-x-2 gap-y-1.5">
+            <span className="font-mono text-[10px] tracking-wider text-[var(--text-soft)]">
+              新手路线
+            </span>
+            {['.text', '.rodata', '.got'].map((name, i) => (
+              <span key={name} className="flex items-center gap-2">
+                {i > 0 && (
+                  <span className="font-mono text-[var(--border-soft)]" aria-hidden="true">
+                    →
+                  </span>
+                )}
+                <button
+                  onClick={() => setSelectedSection(name)}
+                  className="font-mono text-[12px] text-[var(--brand-500)] hover:underline"
+                >
+                  {name}
+                </button>
+              </span>
+            ))}
+            <span className="text-[12px] text-[var(--text-muted)]">
+              （依次点一遍：程序在执行什么 → 有哪些字符串 → 利用者最关心什么）
+            </span>
+          </div>
+
           <div className="flex flex-col md:flex-row">
             {/* 左：Section 列表 */}
             <div className="md:w-1/3 border-b md:border-b-0 md:border-r border-[var(--border)]">

@@ -71,7 +71,62 @@ const disassemblyWithSymbols = `0000000000401132 <vulnerable>:
   4011ad:       c9                      leave
   4011ae:       c3                      ret`;
 
-const dangerousCallLines = [11]; // strcpy 是这段上下文中真正危险的调用
+/* ---------- 2.2 交互练习：每一行都可点击，每行都配有解释 ---------- */
+
+interface LineExplanation {
+  /** 这一行在做什么 */
+  what: string;
+  /** 是 / 不是危险点的原因 */
+  why: string;
+  /** 是否为本练习要找的危险调用 */
+  danger?: boolean;
+}
+
+/**
+ * 与上方 disassemblyWithSymbols 逐行对应（按顺序）。
+ * 改动反汇编文本时必须同步增删这里的条目。
+ */
+const lineExplanations: LineExplanation[] = [
+  { what: '函数标签：vulnerable 函数从地址 0x401132 开始。', why: '标签不是指令，不可能是漏洞点 —— 但它告诉我们"下面进入 vulnerable 函数"。（顺带：能看到函数名，是因为符号表没被 strip。）' },
+  { what: '函数序言第一步：把调用者的栈底指针 rbp 压栈保存。', why: '不是危险点。这是所有函数开头都有的固定动作，用于建立栈帧。' },
+  { what: '函数序言第二步：把当前栈顶 rsp 设为新栈帧的底 rbp。', why: '不是危险点。序言的固定动作，和上一行配套。' },
+  { what: '栈顶下移 0x50（80 字节），为局部变量腾出空间。', why: '不是危险点。只是在"圈地"开辟栈空间，还没有任何数据流入。' },
+  { what: '把第一个参数（input 指针，在 rdi 寄存器里）保存到栈上。', why: '不是危险点。x86-64 调用约定里第一个参数放 rdi —— 这行只是存放指针，还没有拷贝数据。' },
+  { what: '把刚保存的 input 指针取回到 rdx 寄存器。', why: '不是危险点。普通的数据搬运。' },
+  { what: '取 buffer 数组的地址（栈上 64 字节数组，位于 rbp-0x40）。', why: '不是危险点。lea 只计算地址、不访问内存。但记住这个地址 —— 下一步就要往这里写数据。' },
+  { what: '把 input 指针放进 rsi —— strcpy 的第二个参数（源）。', why: '不是危险点。调用前的参数准备。' },
+  { what: '把 buffer 地址放进 rdi —— strcpy 的第一个参数（目标）。', why: '不是危险点。参数准备。x86-64 约定：rdi = 第 1 个参数，rsi = 第 2 个参数。' },
+  { what: '调用 strcpy：把 input 指向的字符串完整拷贝进 buffer。', why: '★ 就是它！strcpy 不知道 buffer 只有 64 字节 —— input 有多长它就拷多长，多出的部分会覆盖栈上相邻的数据（甚至返回地址）。这就是经典的栈溢出源头。', danger: true },
+  { what: '再次取 buffer 的地址，这次是给 printf 用。', why: '不是危险点。普通参数准备。' },
+  { what: '把 buffer 地址放进 rsi（printf 的第二个参数）。', why: '不是危险点。参数准备。' },
+  { what: '取格式串 "Input: %s\\n" 的地址放进 rdi。', why: '不是危险点。注意：格式串是写死在程序里的常量 —— 这正是 printf 用法安全的关键。' },
+  { what: '把 eax 清零（表示本次调用不使用向量寄存器传参）。', why: '不是危险点。调用约定的细节动作。' },
+  { what: '调用 printf 输出结果。', why: '不是危险点：格式串是常量、用户数据只通过 %s 打印。真正危险的是 printf(用户输入) 把数据当格式串 —— 那是格式化字符串漏洞，在案例区有专门练习。' },
+  { what: '空指令（no operation），什么都不做。', why: '不是危险点。常用于指令对齐。' },
+  { what: '函数尾声第一步：回收栈帧（等价于 mov rsp,rbp 再 pop rbp）。', why: '不是危险点。所有函数结尾的例行动作。' },
+  { what: '函数返回：从栈上弹出"返回地址"并跳过去执行。', why: '它本身不是漏洞，但它是溢出攻击的"跳板" —— 如果第 10 行拷贝越界，这里弹出的返回地址就可能已经被攻击者覆盖成了假地址。' },
+  { what: '空行（两个函数之间的分隔）。', why: '不是指令。提示：找危险调用，先扫 call 指令。' },
+  { what: '函数标签：safe_func 从这里开始 —— 这是与 vulnerable 对照的安全版本。', why: '标签不是指令。名字能直接看到，同样是符号表未剥离的功劳。' },
+  { what: '函数序言：保存调用者的 rbp。', why: '不是危险点。固定动作。' },
+  { what: '函数序言：设置新栈帧底部。', why: '不是危险点。固定动作。' },
+  { what: '开辟 0x50（80 字节）栈空间给局部变量。', why: '不是危险点。与 vulnerable 函数相同。' },
+  { what: '保存第一个参数（input 指针）到栈上。', why: '不是危险点。与 vulnerable 函数相同。' },
+  { what: '取回 input 指针到 rcx 寄存器。', why: '不是危险点。数据搬运。' },
+  { what: '取 buf 数组的地址（栈上 64 字节数组）。', why: '不是危险点。与 vulnerable 函数相同。' },
+  { what: '把 0x3f（= 63）放进 edx —— 这是"限长"参数！', why: '不是危险点，恰恰相反 —— 注意这行：safe_func 在调用前准备好了最大拷贝长度，这就是它和 vulnerable 的本质区别。' },
+  { what: '把 input 指针放进 rsi（第二个参数）。', why: '不是危险点。参数准备。' },
+  { what: '把 buf 地址放进 rdi（第一个参数）。', why: '不是危险点。参数准备。' },
+  { what: '调用 strncpy：最多拷贝 63 字节，不会越界。', why: '不是危险点：strncpy 带长度上限（对比 strcpy）。这是教科书级的安全写法 —— 限长函数 + 手动补终止符。' },
+  { what: '在 buf 末尾写入 0（字符串终止符）。', why: '不是危险点。strncpy 不保证补 \\0，手动补上是必要的收尾动作。' },
+  { what: '取 buf 地址给 printf 使用。', why: '不是危险点。参数准备。' },
+  { what: '把 buf 地址放进 rsi（printf 的第二个参数）。', why: '不是危险点。参数准备。' },
+  { what: '取常量格式串的地址放进 rdi。', why: '不是危险点。又见常量格式串 —— 安全用法。' },
+  { what: '把 eax 清零。', why: '不是危险点。调用约定细节。' },
+  { what: '调用 printf 输出结果。', why: '不是危险点。格式串是常量，buf 只作为 %s 的参数被打印。' },
+  { what: '空指令。', why: '不是危险点。' },
+  { what: '函数尾声：回收栈帧。', why: '不是危险点。' },
+  { what: '函数返回：弹出返回地址并跳转。', why: '不是危险点 —— buf 的写入被限制在 63 字节内，这里弹出的返回地址是完好的。对比第 18 行的说明，体会"限长"的价值。' },
+];
 
 const dangerousFunctions = [
   { name: 'strcpy', reason: '无长度检查的字符串拷贝，最经典的栈溢出源头' },
@@ -81,60 +136,41 @@ const dangerousFunctions = [
   { name: 'system', reason: '执行系统命令，若参数可控可导致命令注入' },
 ];
 
-type MarkStatus = 'correct' | 'wrong' | 'none';
-
 export default function Step2Page() {
   const [mode, setMode] = useState<Mode>('beginner');
-  const [markedLines, setMarkedLines] = useState<Record<number, MarkStatus>>({});
+  const [selectedLine, setSelectedLine] = useState<number | null>(null);
+  const [viewedLines, setViewedLines] = useState<Set<number>>(new Set());
+  const [foundDanger, setFoundDanger] = useState(false);
   const [showAutoMark, setShowAutoMark] = useState(false);
-  const [feedback, setFeedback] = useState<string>('');
+  const [methodOpen, setMethodOpen] = useState(true);
 
-  const totalDangerous = dangerousCallLines.length;
-  const correctMarks = Object.entries(markedLines).filter(
-    ([, status]) => status === 'correct'
-  ).length;
-  const wrongMarks = Object.entries(markedLines).filter(
-    ([, status]) => status === 'wrong'
-  ).length;
+  const disassemblyLines = disassemblyWithSymbols.split('\n');
 
   const handleLineClick = (lineNum: number) => {
-    const isDangerous = dangerousCallLines.includes(lineNum);
-    const newMarked = { ...markedLines };
-
-    if (newMarked[lineNum]) {
-      delete newMarked[lineNum];
-    } else {
-      newMarked[lineNum] = isDangerous ? 'correct' : 'wrong';
-    }
-
-    setMarkedLines(newMarked);
-
-    if (!newMarked[lineNum]) {
-      setFeedback('');
-    } else if (isDangerous) {
-      setFeedback('正确！这是一个危险函数调用。strcpy 没有边界检查，可能导致缓冲区溢出。');
-    } else {
-      setFeedback('注意：这不是最危险的函数调用。strncpy 有长度限制，相对安全。再找找看？');
+    setSelectedLine(lineNum);
+    setViewedLines((prev) => new Set(prev).add(lineNum));
+    if (lineExplanations[lineNum - 1]?.danger) {
+      setFoundDanger(true);
     }
   };
 
   const handleAutoMark = () => {
-    const newMarked: Record<number, MarkStatus> = {};
-    dangerousCallLines.forEach((line) => {
-      newMarked[line] = 'correct';
-    });
-    setMarkedLines(newMarked);
-    setShowAutoMark(true);
-    setFeedback('已自动标注所有危险函数。strcpy 是这段代码中最危险的调用。');
+    const idx = lineExplanations.findIndex((l) => l.danger);
+    if (idx >= 0) {
+      setSelectedLine(idx + 1);
+      setViewedLines((prev) => new Set(prev).add(idx + 1));
+      setFoundDanger(true);
+      setShowAutoMark(true);
+    }
   };
 
   const handleReset = () => {
-    setMarkedLines({});
+    setSelectedLine(null);
+    setViewedLines(new Set());
+    setFoundDanger(false);
     setShowAutoMark(false);
-    setFeedback('');
+    setMethodOpen(true);
   };
-
-  const disassemblyLines = disassemblyWithSymbols.split('\n');
 
   return (
     <div className="space-y-14">
@@ -208,9 +244,49 @@ export default function Step2Page() {
         </div>
         <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
           某些 C 标准库函数因为缺乏边界检查，是漏洞的常见来源。
-          下面是一段反汇编代码，请<span className="text-[var(--accent-red)] font-medium">点击函数调用行</span>
-          来标注你认为危险的函数。
+          下面这段反汇编里藏着 <strong className="text-[var(--text)]">1 处</strong>真正的危险调用。
+          <span className="text-[var(--accent-red)] font-medium">每一行都可以点击</span>
+          —— 点错完全没关系，每一行都会告诉你：它是什么、为什么是/不是危险点。动手前先展开下面的定位思路。
         </p>
+
+        {/* 三步定位法 */}
+        <div className="u-panel overflow-hidden">
+          <button
+            onClick={() => setMethodOpen((v) => !v)}
+            className="w-full flex items-center justify-between px-5 py-3 bg-[var(--bg-soft)] hover:bg-[var(--bg-hover)] transition-colors"
+            aria-expanded={methodOpen}
+          >
+            <span className="font-mono text-[11px] tracking-wider text-[var(--text-muted)]">
+              不知道从哪下手？展开「三步定位法」
+            </span>
+            <span className="font-mono text-[var(--text-soft)] text-[13px]" aria-hidden="true">
+              {methodOpen ? '−' : '+'}
+            </span>
+          </button>
+          {methodOpen && (
+            <div className="px-5 py-5 grid md:grid-cols-3 gap-5 border-t border-[var(--border)]">
+              {[
+                {
+                  step: '① 找 call 指令',
+                  desc: '汇编里所有"调用别的函数"都以 call 开头。先扫一遍，把带 call 的行都点开看看。',
+                },
+                {
+                  step: '② 看 call 的目标',
+                  desc: 'call 后面尖括号里的名字就是被调用的函数，比如 <strcpy@plt> —— 名字里通常藏着答案。',
+                },
+                {
+                  step: '③ 对照速查表',
+                  desc: '问一句：这个函数检查边界吗？strcpy 不检查 → 危险；strncpy 限制长度 63 → 安全。',
+                },
+              ].map((m) => (
+                <div key={m.step}>
+                  <div className="font-mono text-[12px] text-[var(--brand-500)] mb-1.5">{m.step}</div>
+                  <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">{m.desc}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* 危险函数速查 */}
         <div className="border border-accent-red/25 bg-accent-red/5 rounded-md p-5">
@@ -229,11 +305,11 @@ export default function Step2Page() {
           </div>
         </div>
 
-        {/* 交互反汇编面板 */}
+        {/* 交互反汇编面板：全行可点 */}
         <div className="u-panel overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-3 border-b border-[var(--border)] bg-[var(--bg-soft)]">
             <span className="font-mono text-[11px] tracking-wider text-[var(--text-muted)]">
-              交互练习 · 找出危险函数调用
+              交互练习 · 找出唯一真正危险的调用
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -255,81 +331,98 @@ export default function Step2Page() {
           <div className="px-5 py-2.5 border-b border-[var(--border)] flex flex-wrap items-center gap-5 font-mono text-[12px]">
             <div className="flex items-center gap-1.5">
               <span className="text-[var(--accent-green)]">✓</span>
-              <span className="text-[var(--text-soft)]">正确</span>
-              <span className="text-accent-green font-semibold">{correctMarks}</span>
+              <span className="text-[var(--text-soft)]">已找到</span>
+              <span className={clsx('font-semibold', foundDanger ? 'text-accent-green' : 'text-[var(--text-bright)]')}>
+                {foundDanger ? 1 : 0}/1
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[var(--accent-red)]">✗</span>
-              <span className="text-[var(--text-soft)]">错误</span>
-              <span className="text-accent-red font-semibold">{wrongMarks}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[var(--text-soft)]">目标数</span>
-              <span className="text-[var(--text-bright)] font-semibold">{totalDangerous}</span>
+              <span className="text-[var(--text-soft)]">已查看</span>
+              <span className="text-[var(--text-bright)] font-semibold">{viewedLines.size}</span>
+              <span className="text-[var(--text-soft)]">行</span>
             </div>
           </div>
 
-          {/* 可点击反汇编 */}
+          {/* 全行可点反汇编 */}
           <div className="overflow-x-auto">
-            <div className="min-w-full">
-              <pre className="m-0 p-4 !bg-transparent">
-                <code>
-                  {disassemblyLines.map((line, i) => {
-                    const lineNum = i + 1;
-                    const markStatus = markedLines[lineNum];
-                    const isCallLine = line.includes('call');
+            <div className="min-w-full py-2">
+              {disassemblyLines.map((text, i) => {
+                const lineNum = i + 1;
+                const info = lineExplanations[i];
+                const isSelected = selectedLine === lineNum;
+                const isDangerLine = !!info?.danger;
 
-                    return (
-                      <div
-                        key={lineNum}
-                        className={clsx(
-                          'relative group transition-colors -mx-4 px-4',
-                          isCallLine && 'cursor-pointer hover:bg-white/5',
-                          markStatus === 'correct' && 'bg-accent-green/10',
-                          markStatus === 'wrong' && 'bg-accent-red/10'
-                        )}
-                        onClick={() => isCallLine && handleLineClick(lineNum)}
-                      >
-                        <span className="text-[var(--text)]/90 text-[13px] leading-[1.65] font-mono whitespace-pre">
-                          {line || ' '}
-                        </span>
-                        {isCallLine && !markStatus && (
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="font-mono text-[10px] text-[var(--text-soft)] border border-[var(--border)] px-1.5 py-0.5 rounded">
-                              点击标注
-                            </span>
-                          </span>
-                        )}
-                        {markStatus === 'correct' && (
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--accent-green)]">
-                            ✓
-                          </span>
-                        )}
-                        {markStatus === 'wrong' && (
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--accent-red)]">
-                            ✗
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </code>
-              </pre>
+                return (
+                  <button
+                    key={lineNum}
+                    onClick={() => handleLineClick(lineNum)}
+                    aria-label={`查看第 ${lineNum} 行解释`}
+                    className={clsx(
+                      'relative group w-full flex items-baseline gap-3 text-left transition-colors px-4 border-l-2',
+                      isSelected && isDangerLine && 'bg-accent-green/10 border-accent-green',
+                      isSelected && !isDangerLine && 'bg-brand-500/10 border-[var(--brand-500)]',
+                      !isSelected && 'border-transparent hover:bg-[var(--bg-hover)]'
+                    )}
+                  >
+                    <span className="w-7 flex-shrink-0 text-right font-mono text-[11px] text-[var(--line-number)] select-none">
+                      {lineNum}
+                    </span>
+                    <span className="font-mono text-[12.5px] leading-[1.7] whitespace-pre text-[var(--text-muted)] group-hover:text-[var(--text)] transition-colors">
+                      {text || ' '}
+                    </span>
+                    {isDangerLine && foundDanger && (
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--accent-green)] font-mono text-[12px]">
+                        ✓
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {feedback && (
-            <div className="px-5 py-3 border-t border-[var(--border)] bg-[var(--bg-soft)]">
-              <p
-                className={clsx(
-                  'text-[13px]',
-                  correctMarks > wrongMarks ? 'text-accent-green' : 'text-accent-orange'
-                )}
-              >
-                {feedback}
+          {/* 逐行解释面板 */}
+          <div className="border-t border-[var(--border)]">
+            {selectedLine === null || !lineExplanations[selectedLine - 1] ? (
+              <p className="px-5 py-3.5 font-mono text-[12px] text-[var(--text-soft)]">
+                点击任意一行 → 这里会解释它是什么、为什么是/不是危险点
               </p>
-            </div>
-          )}
+            ) : (
+              (() => {
+                const info = lineExplanations[selectedLine - 1];
+                return (
+                  <div className={clsx('px-5 py-3.5', info.danger && 'bg-accent-green/5')}>
+                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                      <span
+                        className={clsx(
+                          'font-mono text-[11px] px-1.5 py-0.5 rounded border',
+                          info.danger
+                            ? 'text-accent-green border-accent-green/40'
+                            : 'text-[var(--text-soft)] border-[var(--border)]'
+                        )}
+                      >
+                        第 {selectedLine} 行
+                      </span>
+                      {info.danger && (
+                        <span className="font-mono text-[11px] text-accent-green font-semibold">
+                          ✓ 就是它 —— 危险调用
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[13px] leading-relaxed text-[var(--text)] mb-1">{info.what}</p>
+                    <p
+                      className={clsx(
+                        'text-[12.5px] leading-relaxed',
+                        info.danger ? 'text-accent-green' : 'text-[var(--text-muted)]'
+                      )}
+                    >
+                      {info.why}
+                    </p>
+                  </div>
+                );
+              })()
+            )}
+          </div>
         </div>
       </section>
 

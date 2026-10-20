@@ -233,7 +233,7 @@ export default function DilipaDemo() {
           <p className="u-eyebrow mb-1.5">Live Demo</p>
           <h3 className="text-lg md:text-xl font-semibold tracking-tight">概念演示：strcpy → strncpy</h3>
           <p className="text-[13px] text-[var(--text-muted)] mt-1">
-            观察 C 代码层面的修改如何映射到汇编指令层面的变化
+            先通读下面两层代码，再点击右上角「应用补丁」，逐行对比红绿差异 —— 看一行 C 代码的修改如何在汇编层落地。
           </p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
@@ -265,7 +265,7 @@ export default function DilipaDemo() {
         {!patched ? (
           <div className="rounded-md overflow-hidden border border-[var(--border)] bg-[var(--bg-code)]">
             <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] font-mono text-[11px] text-[var(--text-muted)]">
-              提升后的 C 代码（原始版本）
+              源代码（原始版本 · 未修复）
             </div>
             <pre className="p-3 text-[11.5px] leading-[1.7] font-mono text-[var(--text-muted)] overflow-x-auto">
               {originalC}
@@ -299,7 +299,7 @@ export default function DilipaDemo() {
         {!patched ? (
           <div className="rounded-md overflow-hidden border border-[var(--border)] bg-[var(--bg-code)]">
             <div className="px-3 py-2 bg-[var(--bg-code-header)] border-b border-[var(--border)] font-mono text-[11px] text-[var(--text-muted)]">
-              提升后的 C 代码（补丁版本）
+              原始汇编（未修复）
             </div>
             <pre className="p-3 text-[11.5px] leading-[1.7] font-mono text-[var(--text-muted)] overflow-x-auto">
               {originalAsm}

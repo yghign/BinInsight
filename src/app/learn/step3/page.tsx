@@ -58,6 +58,34 @@ const rawEdges = [
   { from: 'vuln', to: 'exit3' },
 ];
 
+/* 预设场景：帮新手按顺序体验「条件如何决定可达性」 */
+const scenarioPresets = [
+  {
+    id: 'A',
+    label: '输入 "hi"',
+    lenGt10: false,
+    prefixCMD: false,
+    explain:
+      '"hi" 只有 2 个字符，在第一个判断 if (len > 10) 处就不满足，程序直接走向「长度不足」的退出分支 —— 执行流根本到不了第二个判断，更到不了漏洞点。',
+  },
+  {
+    id: 'B',
+    label: '输入 "CMD!"',
+    lenGt10: false,
+    prefixCMD: true,
+    explain:
+      '"CMD!" 的前缀匹配通过了第二个判断，但长度只有 4，第一道关卡 len > 10 依然过不去。注意：两个条件缺一不可，任何一道不满足都会提前退出。',
+  },
+  {
+    id: 'C',
+    label: '输入 "CMDaaaaaaaaaaa"',
+    lenGt10: true,
+    prefixCMD: true,
+    explain:
+      '"CMD" 开头再补 11 个字母，总长 14 > 10，两个条件同时满足。执行流一路畅通直达 vulnerable_func() 里的 strcpy —— 图中红色高亮就是攻击者想要的路径。',
+  },
+];
+
 function nodeColor(type: NodeType, isReachable: boolean) {
   if (!isReachable) {
     return {
@@ -97,6 +125,24 @@ function nodeColor(type: NodeType, isReachable: boolean) {
 function PathExplorer() {
   const [lenGt10, setLenGt10] = useState(false);
   const [prefixCMD, setPrefixCMD] = useState(false);
+  const [activePreset, setActivePreset] = useState<string | null>(null);
+
+  const applyPreset = (p: (typeof scenarioPresets)[number]) => {
+    setLenGt10(p.lenGt10);
+    setPrefixCMD(p.prefixCMD);
+    setActivePreset(p.id);
+  };
+
+  const toggleLen = (v: boolean) => {
+    setLenGt10(v);
+    setActivePreset(null);
+  };
+  const togglePrefix = (v: boolean) => {
+    setPrefixCMD(v);
+    setActivePreset(null);
+  };
+
+  const activePresetData = scenarioPresets.find((p) => p.id === activePreset);
 
   const edges = computeReachability(rawEdges, { lenGt10, prefixCMD });
 
@@ -124,15 +170,40 @@ function PathExplorer() {
       <div className="flex flex-col lg:flex-row gap-6">
         {/* 约束条件面板 */}
         <div className="lg:w-60 flex-shrink-0">
-          <h4 className="font-mono text-[11px] tracking-wider text-[var(--text-muted)] mb-4">
+          <h4 className="font-mono text-[11px] tracking-wider text-[var(--text-muted)] mb-3">
             约束条件 / CONSTRAINTS
           </h4>
+
+          {/* 预设场景：新手从这里开始 */}
+          <div className="mb-4">
+            <p className="font-mono text-[10px] tracking-wider text-[var(--text-soft)] mb-1.5">
+              新手？先依次点一遍这三个预设输入
+            </p>
+            <div className="space-y-1.5">
+              {scenarioPresets.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => applyPreset(p)}
+                  className={clsx(
+                    'w-full text-left px-3 py-2 rounded-md border text-[12.5px] transition-colors',
+                    activePreset === p.id
+                      ? 'border-brand-500/60 bg-brand-500/10 text-[var(--text)]'
+                      : 'border-[var(--border)] hover:bg-[var(--bg-hover)] text-[var(--text-muted)]'
+                  )}
+                >
+                  <span className="font-mono text-[10px] text-[var(--text-soft)] mr-2">{p.id}</span>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-3">
             <label className="flex items-start gap-3 cursor-pointer group">
               <input
                 type="checkbox"
                 checked={lenGt10}
-                onChange={(e) => setLenGt10(e.target.checked)}
+                onChange={(e) => toggleLen(e.target.checked)}
                 className="mt-0.5 w-4 h-4 accent-[var(--brand-500)]"
               />
               <div>
@@ -148,7 +219,7 @@ function PathExplorer() {
               <input
                 type="checkbox"
                 checked={prefixCMD}
-                onChange={(e) => setPrefixCMD(e.target.checked)}
+                onChange={(e) => togglePrefix(e.target.checked)}
                 className="mt-0.5 w-4 h-4 accent-[var(--brand-500)]"
               />
               <div>
@@ -183,8 +254,20 @@ function PathExplorer() {
               {vulnReachable
                 ? '存在输入可以触发 vulnerable_func() 中的栈溢出'
                 : '当前约束下无法到达漏洞点'}
-            </p>
+              </p>
           </div>
+
+          {/* 预设场景解读 */}
+          {activePresetData && (
+            <div className="mt-3 p-4 rounded-md border border-[var(--border)] bg-[var(--bg-card)]">
+              <div className="font-mono text-[10px] tracking-wider text-[var(--text-soft)] mb-1.5">
+                场景 {activePresetData.id} 解读 · 为什么是这个结果
+              </div>
+              <p className="text-[12.5px] text-[var(--text-muted)] leading-relaxed">
+                {activePresetData.explain}
+              </p>
+            </div>
+          )}
 
           {/* 图例 */}
           <div className="mt-6">
@@ -363,6 +446,8 @@ export default function Step3Page() {
         <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
           调整左侧的约束条件开关，观察右侧控制流图中哪些路径变为可达。
           当两个条件同时满足时，漏洞路径将被高亮为红色。
+          不知道从哪里开始？先依次点击左侧的<strong className="text-[var(--text)]">场景 A / B / C</strong>三个预设输入，
+          读完解读后再自由勾选探索。
         </p>
         <PathExplorer />
       </section>
