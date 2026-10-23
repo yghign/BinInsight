@@ -5,3 +5,11 @@ out/
 .DS_Store
 *.log
 next-env.d.ts
+__pycache__/
+*.pyc
+*.pyo
+.egg-info/
+dist/
+build/
+*.spec
+*.elf

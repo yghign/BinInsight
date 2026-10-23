@@ -10,43 +10,47 @@ export const metadata = {
 const pipeline = [
   {
     label: '01',
-    title: 'Ghidra 提升',
-    desc: 'Headless Analyzer 反编译 → 伪 C 代码 + 函数签名 + 控制流。',
+    title: 'ELF 解析',
+    desc: 'pyelftools 解析 .text / .plt / .symtab — 提取代码段和符号表。',
   },
   {
     label: '02',
-    title: 'C 代码编辑',
-    desc: '用户在熟悉的 C 层面修改：换危险函数、补保护检查、加终止符。',
+    title: 'Capstone 反汇编',
+    desc: '逐字节反汇编 .text 段, 扫描所有 call 指令, 匹配危险函数名单。',
   },
   {
     label: '03',
-    title: 'AST Diff 提取',
-    desc: '对比前后语法树，生成最小修改集 replace_call / insert_stmt / insert_branch。',
+    title: '修复建议',
+    desc: '每条危险调用生成 replace_call / insert_stmt / insert_branch 建议。',
   },
   {
     label: '04',
-    title: '指令映射',
-    desc: '每条 C 层修改精确映射为 x86-64 / ARM64 指令变化。',
+    title: 'AST Diff 输出',
+    desc: '结构化 JSON 输出, 可在网页工作台中可视化展示。',
   },
   {
     label: '05',
-    title: 'Trampoline 写入',
-    desc: '原位置空间不足 → code cave 注入 → 三重校验 → 输出 .patched。',
+    title: '可选: 二进制重写',
+    desc: '当前为预览模式, 真实重写需 code cave 分析 + keystone 汇编器。',
   },
 ];
 
 const faqs = [
   {
     q: 'Dilipa 和 Mutagen 有什么区别？',
-    a: 'Mutagen 是一键式自动化工具，自动发现漏洞并生成补丁，适合批量扫描；Dilipa 是手动微补丁实验台，需要自己识别漏洞、编辑 C 代码，重点是理解「C 层修改如何映射到指令层」的完整原理。',
+    a: 'Mutagen 是一键式自动化工具，自动发现漏洞并生成补丁，适合批量扫描；Dilipa 是手动微补丁实验台，CLI 负责扫描分析，网页工作台负责可视化展示，重点是理解「call strcpy@plt → call strncpy@plt」的具体指令变化。',
   },
   {
-    q: 'Ghidra 提升的 C 代码看起来很奇怪怎么办？',
-    a: '反编译是重建过程，不是源码还原。变量可能被规范化为 local_xx、类型推断可能不精确。这是正常现象——Dilipa 允许你在编辑前重命名和修正类型，提升后的代码越准确，补丁映射质量越高。',
+    q: 'Dilipa CLI 需要 Ghidra 吗？',
+    a: '不需要。CLI 用 pyelftools 解析 ELF + capstone 反汇编，纯 Python 实现，安装即用。Ghidra 提升是 Dilipa 设想的高级特性，当前版本暂不支持。',
   },
   {
-    q: 'Trampoline 注入会不会破坏二进制？',
-    a: 'Dilipa 在写入前自动备份原文件，补丁后做三重校验：文件校验和对比、反汇编验证、以及可选的沙箱功能测试。校验失败自动回滚。',
+    q: 'patch 命令能真的改二进制吗？',
+    a: '当前版本 patch 是预览模式 —— 识别哪些 call 需要替换，输出 JSON 报告，但不直接写二进制。真实重写需要计算 code cave、插入新指令、修正跳转 —— 是后续目标。',
+  },
+  {
+    q: '支持 Windows .exe 吗？',
+    a: '当前只支持 ELF (Linux/Unix 二进制)。PE 格式支持需要 pefile 等额外依赖，暂未实现。建议在 Kali Linux 上编译测试程序。',
   },
 ];
 
@@ -72,10 +76,73 @@ export default function DilipaPage() {
             BINARY MICRO-PATCHING WORKBENCH · C-LEVEL EDITING
           </p>
           <p className="text-[14px] text-[var(--text-muted)] max-w-2xl leading-relaxed">
-            把二进制补丁表达为对提升后 C 代码的编辑。修改 C 代码 → AST 对比提取最小修改集 →
-            自动映射回指令级修改 —— 完整看到「改了什么 C 代码，二进制里变成了什么」。
+            把二进制补丁表达为对提升后 C 代码的编辑。
+            <strong className="text-[var(--text)]">CLI 工具</strong> 用 pyelftools + capstone 真实解析 ELF，
+            <strong className="text-[var(--text)]">网页工作台</strong> 把修改过程可视化 —— 两条路任选。
           </p>
+
+          {/* 下载按钮组 */}
+          <div className="mt-6 flex flex-wrap gap-2.5">
+            <a
+              href="https://github.com/yghign/BinInsight/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="u-btn u-btn-primary"
+            >
+              <span className="font-mono text-[11px] mr-1">↓</span>
+              下载 Dilipa CLI
+              <span className="font-mono ml-1" aria-hidden="true">↗</span>
+            </a>
+            <a
+              href="https://github.com/yghign/BinInsight/archive/refs/heads/main.zip"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="u-btn u-btn-ghost"
+            >
+              下载源码 zip
+              <span className="font-mono ml-1" aria-hidden="true">↗</span>
+            </a>
+            <a
+              href="#cli-install"
+              className="u-btn u-btn-ghost"
+            >
+              pip / 源码安装
+            </a>
+          </div>
         </div>
+      </section>
+
+      {/* CLI 安装说明 */}
+      <section id="cli-install" className="max-w-5xl mx-auto px-5 sm:px-8 py-8 md:py-10 scroll-mt-24">
+        <p className="u-eyebrow mb-2">CLI Installation</p>
+        <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+          <div className="u-panel p-5">
+            <h3 className="text-[14px] font-semibold mb-3">pip 安装（开发 / Kali Linux）</h3>
+            <pre className="font-mono text-[12px] leading-[1.8] text-[var(--text-muted)] bg-[var(--bg-code)] rounded-md p-3 overflow-x-auto">
+{`cd dilipa-tool
+pip install -r requirements.txt
+pip install -e .
+dilipa --help`}
+            </pre>
+          </div>
+          <div className="u-panel p-5">
+            <h3 className="text-[14px] font-semibold mb-3">PyInstaller 打包（Windows 分发）</h3>
+            <pre className="font-mono text-[12px] leading-[1.8] text-[var(--text-muted)] bg-[var(--bg-code)] rounded-md p-3 overflow-x-auto">
+{`pip install pyinstaller
+cd dilipa-tool
+# Windows: 双击 build_windows.bat
+# 或手动:
+pyinstaller --onefile --name dilipa \\
+  dilipa/__main__.py \\
+  --collect-all capstone --collect-all elftools
+# → dist/dilipa.exe`}
+            </pre>
+          </div>
+        </div>
+        <p className="mt-4 text-[12.5px] text-[var(--text-muted)] leading-relaxed">
+          Dilipa CLI 是纯 Python 工具，不依赖 Ghidra。用 pyelftools 解析 ELF、capstone 反汇编，
+          输出 JSON 可以直接喂给下方的网页工作台做可视化。
+        </p>
       </section>
 
       {/* 工作台（核心） */}
@@ -88,18 +155,18 @@ export default function DilipaPage() {
             </h2>
           </div>
           <a
-            href="https://github.com/bininsight/dilipa"
+            href="https://github.com/yghign/BinInsight/tree/main/dilipa-tool"
             target="_blank"
             rel="noopener noreferrer"
             className="u-btn u-btn-ghost !py-1.5 !px-3 text-[11.5px]"
           >
-            GitHub 仓库
+            CLI 源码
             <span className="font-mono ml-1" aria-hidden="true">↗</span>
           </a>
         </div>
         <DilipaWorkbench />
         <p className="mt-4 font-mono text-[10.5px] text-[var(--text-soft)] text-center">
-          工作台为纯前端仿真，使用预置数据模拟 Dilipa 真实流程。生产使用需配合 Ghidra Headless + 二进制重写引擎。
+          工作台使用预置样例数据. 想跑真实 ELF? 在 Kali 上用 Dilipa CLI 分析 → 生成 JSON → 带回来.
         </p>
       </section>
 
@@ -153,19 +220,19 @@ export default function DilipaPage() {
       <section className="border-t border-[var(--border)]">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-12 md:py-14 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-1.5">在 C 层面修补二进制</h2>
+            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-1.5">下载 Dilipa 跑真实 ELF</h2>
             <p className="text-[13px] text-[var(--text-muted)]">
-              从 Ghidra 提升到 trampoline 注入，完整理解微补丁生成的每一步。
+              CLI 用 pyelftools + capstone 扫描真实二进制, 输出 JSON 带到网页工作台可视化.
             </p>
           </div>
           <div className="flex flex-wrap gap-2.5 flex-shrink-0">
             <a
-              href="https://github.com/bininsight/dilipa"
+              href="https://github.com/yghign/BinInsight/releases"
               target="_blank"
               rel="noopener noreferrer"
               className="u-btn u-btn-primary"
             >
-              访问 GitHub
+              下载 Dilipa CLI
               <span className="font-mono ml-1" aria-hidden="true">→</span>
             </a>
             <Link href="/tools" className="u-btn u-btn-ghost">
