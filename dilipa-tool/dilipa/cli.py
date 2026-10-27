@@ -4,9 +4,13 @@
   dilipa analyze target.elf                   # 扫描危险调用
   dilipa lift    target.elf --func main       # 反汇编指定函数, 生成 JSON
   dilipa patch   target.elf --replace strcpy:strncpy --out patched.elf
+
+Windows 下如果直接执行 dilipa 找不到命令:
+  python -m dilipa analyze target.elf         # 用 python -m 代替
 """
 from __future__ import annotations
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -16,6 +20,34 @@ from . import __version__
 from .elf_parser import parse_elf, ElfInfo
 from .disassembler import disassemble, call_sites_to_dicts
 from .danger_funcs import DANGER_NAMES, safe_replace, cwe_of
+
+
+# ── Windows 编码修复 ────────────────────────────────────────────
+# Windows CMD 默认 GBK (cp936), Python 输出 UTF-8 会乱码.
+# 尝试把 stdout/stderr 重配置为 UTF-8, 并把控制台切到 65001 代码页.
+def _fix_windows_encoding() -> None:
+    if sys.platform != "win32":
+        return
+    # 1) 切代码页 (chcp 65001) — 让 cmd 认识 UTF-8 输出
+    try:
+        import ctypes
+        ctypes.windll.kernel32.SetConsoleOutputCP(65001)
+        ctypes.windll.kernel32.SetConsoleCP(65001)
+    except Exception:
+        pass  # 忽略: 在重定向 / 非控制台环境会失败
+
+    # 2) 重配置 Python 的 stdout/stderr 为 UTF-8
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+    try:
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+
+_fix_windows_encoding()
 
 
 def _header(elf: ElfInfo) -> dict:
