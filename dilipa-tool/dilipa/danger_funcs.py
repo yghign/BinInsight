@@ -11,7 +11,7 @@ DANGER_FUNCS = [
     ("strcat",      "strncat",     "CWE-120"),
     ("sprintf",     "snprintf",    "CWE-120"),
     ("vsprintf",    "vsnprintf",   "CWE-120"),
-    ("scanf",       "scanf_s",     "CWE-242"),       # 需 MS CRT; 或限制宽度
+    ("scanf",       "scanf(加字段宽度)", "CWE-242"),    # 例: scanf("%127[^\n]", buf)
     ("system",      "execvp",      "CWE-78"),        # 命令注入
     ("popen",       "pipe+execvp", "CWE-78"),
     ("atoi",        "strtol",      "CWE-190"),       # 溢出
