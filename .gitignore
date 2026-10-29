@@ -13,3 +13,6 @@ dist/
 build/
 *.spec
 *.elf
+.idea/
+.vscode/
+*.iml
