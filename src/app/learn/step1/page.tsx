@@ -427,6 +427,70 @@ export default function Step1Page() {
         </section>
       )}
 
+      {/* 1.4 加壳与脱壳识别 */}
+      <section className="space-y-5">
+        <div className="flex items-baseline gap-3">
+          <span className="u-section-num">1.4</span>
+          <h3 className="text-lg md:text-xl font-semibold tracking-tight">加壳与脱壳识别</h3>
+        </div>
+        <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
+          恶意样本和商业软件常通过加壳（Packing）压缩或加密真实代码，阻碍静态分析。
+          逆向这类样本的第一步不是反汇编，而是识别壳并脱掉它——否则你看到的只是壳的解密代码。
+        </p>
+
+        <div className="grid md:grid-cols-3 gap-4">
+          <div className="u-panel p-4">
+            <div className="font-mono text-[11px] tracking-wider mb-2.5 text-[var(--accent-orange)]">
+              识别特征
+            </div>
+            <ul className="space-y-1.5 text-[12.5px] text-[var(--text-muted)]">
+              <li>· 节区名异常：UPX0 / UPX1 / .vmp 等</li>
+              <li>· 入口点不在 <code className="inline">.text</code> 段</li>
+              <li>· 可读字符串极少（真实代码被加密）</li>
+              <li>· 节区同时可写可执行（RWX）</li>
+            </ul>
+          </div>
+          <div className="u-panel p-4">
+            <div className="font-mono text-[11px] tracking-wider mb-2.5 text-[var(--accent-cyan)]">
+              常见壳
+            </div>
+            <ul className="space-y-1.5 text-[12.5px] text-[var(--text-muted)]">
+              <li>· <strong className="text-[var(--text)]">UPX</strong>：开源压缩壳，样本与教学中最常见</li>
+              <li>· <strong className="text-[var(--text)]">ASPack</strong>：Windows 老牌压缩壳</li>
+              <li>· <strong className="text-[var(--text)]">VMProtect</strong>：虚拟化保护，代码被转成自定义字节码</li>
+              <li>· <strong className="text-[var(--text)]">Themida</strong>：商业强壳，反调试 + 虚拟化</li>
+            </ul>
+          </div>
+          <div className="u-panel p-4">
+            <div className="font-mono text-[11px] tracking-wider mb-2.5 text-[var(--accent-green)]">
+              处理流程
+            </div>
+            <ul className="space-y-1.5 text-[12.5px] text-[var(--text-muted)]">
+              <li>· UPX：直接 <code className="inline">upx -d</code> 一键脱壳</li>
+              <li>· 未知壳：调试器跑到真实入口（OEP）后 dump 内存</li>
+              <li>· dump 后修复导入表（IAT），样本才能正常分析</li>
+            </ul>
+          </div>
+        </div>
+
+        <CodeBlock
+          code={`$ upx -d packed.exe          # -d = decompress，脱壳
+                       Ultimate Packer for eXecutables
+        File size         Ratio      Format      Name
+   --------------------   ------   -----------   -----------
+     54272 <-     28160   51.89%    win32/pe     packed.exe
+Unpacked 1 file.                 # 脱壳完成，再丢进反汇编工具`}
+          language="bash"
+          showLineNumbers={false}
+        />
+
+        <p className="font-mono text-[12px]">
+          <Link href="/reference/formats" className="text-[var(--brand-500)] hover:underline">
+            延伸阅读 → /reference/formats 二进制格式
+          </Link>
+        </p>
+      </section>
+
       {/* 底部导航 */}
       <section className="pt-6 border-t border-[var(--border)] flex justify-end">
         <Link href="/learn/step2" className="u-btn u-btn-primary">

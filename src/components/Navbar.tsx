@@ -9,6 +9,7 @@ import { TermsButton } from './TermsDrawer';
 
 const navItems = [
   { href: '/learn', label: '教学', section: '/learn' },
+  { href: '/reference', label: '知识库', section: '/reference' },
   { href: '/tools', label: '工具', section: '/tools' },
   { href: '/cases', label: '案例', section: '/cases' },
 ];

@@ -717,6 +717,66 @@ export default function Step3Page() {
         </div>
       )}
 
+      {/* 3.5 动态分析入门 */}
+      <section className="space-y-5">
+        <div className="flex items-baseline gap-3">
+          <span className="u-section-num">3.5</span>
+          <h3 className="text-lg md:text-xl font-semibold tracking-tight">
+            动态分析入门：三条 GDB 命令定位崩溃
+          </h3>
+        </div>
+        <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
+          静态分析负责猜测路径，动态分析负责验证路径。
+          最直接的办法：把超长输入喂给程序，让它在调试器里「崩溃给你看」。
+        </p>
+
+        <CodeBlock
+          code={`$ gdb ./vuln
+(gdb) run $(python3 -c "print('A'*200)")   # 喂 200 个 'A' 触发溢出
+Program received signal SIGSEGV, Segmentation fault.
+(gdb) bt                          # ① 看调用栈：崩在哪个函数
+#0  0x0000414141414141 in ?? ()
+(gdb) info registers rip rsp      # ② 看寄存器：RIP 被谁接管
+rip            0x4141414141414141  # 'A' = 0x41，返回地址已被覆盖
+(gdb) x/8gx $rsp                  # ③ 看栈顶残留的溢出数据`}
+          language="bash"
+          title="GDB 三件套 · 复现并定位崩溃"
+          showLineNumbers={false}
+        />
+
+        <ul className="space-y-2 text-[13px] text-[var(--text-muted)]">
+          <li className="flex items-start gap-2.5">
+            <span className="font-mono text-[var(--text-soft)]">—</span>
+            <span>
+              <code className="inline">bt</code>（backtrace）：打印调用栈，看程序崩在哪个函数、从哪里调过来
+            </span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="font-mono text-[var(--text-soft)]">—</span>
+            <span>
+              <code className="inline">info registers</code>：rip 显示 0x4141… 说明返回地址被
+              &apos;A&apos;（0x41）覆盖——覆盖 = 可控 = RIP 到手
+            </span>
+          </li>
+          <li className="flex items-start gap-2.5">
+            <span className="font-mono text-[var(--text-soft)]">—</span>
+            <span>
+              <code className="inline">x/8gx $rsp</code>：查看栈顶 8 个 64 位值，确认溢出数据的落点
+            </span>
+          </li>
+        </ul>
+
+        <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
+          崩溃点确认后，下一步是计算偏移量、精确控制 RIP——案例区沙箱里有完整练习。
+        </p>
+
+        <p className="font-mono text-[12px]">
+          <Link href="/reference/dynamic" className="text-[var(--brand-500)] hover:underline">
+            延伸阅读 → /reference/dynamic 动态分析
+          </Link>
+        </p>
+      </section>
+
       {/* 底部导航 */}
       <section className="pt-6 border-t border-[var(--border)] flex flex-col sm:flex-row justify-between gap-3">
         <Link href="/learn/step2" className="u-btn u-btn-ghost">

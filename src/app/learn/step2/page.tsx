@@ -569,6 +569,71 @@ export default function Step2Page() {
         </section>
       )}
 
+      {/* 2.5 x86 指令速读与栈帧 */}
+      <section className="space-y-5">
+        <div className="flex items-baseline gap-3">
+          <span className="u-section-num">2.5</span>
+          <h3 className="text-lg md:text-xl font-semibold tracking-tight">
+            x86 指令速读与栈帧一图流
+          </h3>
+        </div>
+        <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
+          读反汇编不需要精通整个指令集——先认出下面这 8 条，就能跟上绝大多数函数的逻辑。
+        </p>
+
+        <div className="u-panel p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+            {[
+              ['mov', '数据搬运：寄存器 ↔ 内存 ↔ 立即数'],
+              ['lea', '计算地址：取变量指针，不访问内存本身'],
+              ['push', '压栈：保存数据，栈顶 rsp 下移'],
+              ['pop', '弹栈：取回数据，栈顶 rsp 上移'],
+              ['call', '调用函数：压入返回地址后跳转'],
+              ['ret', '函数返回：弹出返回地址并跳过去——溢出攻击的跳板'],
+              ['cmp', '比较两个值，结果只写进标志位'],
+              ['jcc', '条件跳转（je / jne / jg…）：看 cmp 的标志位决定走向'],
+            ].map(([name, desc]) => (
+              <div key={name} className="flex items-baseline gap-2.5 text-[13px]">
+                <code className="inline flex-shrink-0 !bg-transparent !p-0 text-[var(--accent-cyan)]">
+                  {name}
+                </code>
+                <span className="text-[var(--text-muted)]">{desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <CodeBlock
+          code={`高地址
++------------------------+
+|  函数参数（第 7 个起）   |
++------------------------+
+|  返回地址               | ← 溢出攻击的终极目标
++------------------------+
+|  保存的 rbp（旧栈底）    |
++------------------------+
+|  canary（若开启栈保护）  |
++------------------------+
+|  局部缓冲区 buf[64]     | ← strcpy 从这里开始写入
++------------------------+
+低地址    写入方向：向高地址生长 ↑ ↑ ↑`}
+          language="plaintext"
+          title="栈帧结构 · 溢出覆盖方向"
+          showLineNumbers={false}
+        />
+
+        <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
+          点睛：看到 <code className="inline">sub rsp, 0x50</code> 就是函数在给局部变量「圈地」
+          ——圈出的 0x50（80 字节）就是局部缓冲区的总容量，也是溢出返回地址前要填满的距离。
+        </p>
+
+        <p className="font-mono text-[12px]">
+          <Link href="/reference/isa" className="text-[var(--brand-500)] hover:underline">
+            延伸阅读 → /reference/isa 指令集速查
+          </Link>
+        </p>
+      </section>
+
       {/* 底部导航 */}
       <section className="pt-6 border-t border-[var(--border)] flex flex-col sm:flex-row justify-between gap-3">
         <Link href="/learn/step1" className="u-btn u-btn-ghost">

@@ -594,6 +594,46 @@ code.inline {
   .hero-scroll-line::after { animation: none; opacity: 0.6; }
 }
 
+/* ==========================================
+   温暖泡泡装饰（极简 + 可爱）
+   柔和半透明圆点，缓慢浮动，明暗模式自适应
+   ========================================== */
+
+.bubbles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bubble {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 32% 30%,
+    color-mix(in srgb, var(--bubble-color) 20%, transparent) 0%,
+    color-mix(in srgb, var(--bubble-color) 7%, transparent) 62%,
+    transparent 78%
+  );
+  border: 1px solid color-mix(in srgb, var(--bubble-color) 13%, transparent);
+  opacity: var(--bubble-opacity, 0.75);
+  animation: bubble-float var(--bubble-duration, 16s) ease-in-out
+    var(--bubble-delay, 0s) infinite alternate;
+  will-change: transform;
+}
+
+@keyframes bubble-float {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to {
+    transform: translate3d(var(--bubble-dx, 10px), var(--bubble-dy, -24px), 0)
+      scale(1.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble { animation: none; }
+}
+
 /* 条款抽屉 */
 .u-drawer-backdrop {
   background: color-mix(in srgb, #000 46%, transparent);

@@ -798,6 +798,67 @@ void dispatch(callback_t cb, int arg) {
         </div>
       )}
 
+      {/* 4.7 防护不是银弹 */}
+      <section className="space-y-5">
+        <div className="flex items-baseline gap-3">
+          <span className="u-section-num">4.7</span>
+          <h3 className="text-lg md:text-xl font-semibold tracking-tight">
+            防护不是银弹：对抗思路一览
+          </h3>
+        </div>
+        <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
+          现代系统防护默认全开，但攻防是持续博弈——每种防护都有已知的对抗思路。
+          理解绕过方式，才能真正理解防护为什么这样设计。
+        </p>
+
+        <div className="border-t border-[var(--border)]">
+          {[
+            {
+              name: 'Canary',
+              bypass: '泄露金丝雀值后原样回填，或在 fork 型服务中逐字节爆破',
+              req: '需要信息泄露通道',
+            },
+            {
+              name: 'NX',
+              bypass: 'ret2libc / ROP：复用程序已有代码拼接攻击链，不注入新代码',
+              req: '需要可控 RIP',
+            },
+            {
+              name: 'ASLR / PIE',
+              bypass: '泄露任一已知地址，减去偏移反推模块基址',
+              req: '需要格式化字符串或 UAF 读',
+            },
+            {
+              name: 'RELRO',
+              bypass: 'Full RELRO 后 GOT 只读，放弃 GOT 改打堆上函数指针与 hook',
+              req: '需要任意写',
+            },
+          ].map((row) => (
+            <div
+              key={row.name}
+              className="grid md:grid-cols-[110px_1fr_230px] gap-2 md:gap-6 py-4 border-b border-[var(--border)]"
+            >
+              <strong className="font-mono text-[13.5px] text-[var(--text)]">{row.name}</strong>
+              <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">{row.bypass}</p>
+              <p className="text-[12.5px] text-[var(--text-soft)] leading-relaxed">
+                前提：{row.req}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
+          单一漏洞很难打穿全开防护——现代利用 = 泄露 + 任意写 + 控制流劫持的组合拳。
+          完整的利用开发专题见知识库。
+        </p>
+
+        <p className="font-mono text-[12px]">
+          <Link href="/reference/protections" className="text-[var(--brand-500)] hover:underline">
+            延伸阅读 → /reference/protections 防护与对抗
+          </Link>
+        </p>
+      </section>
+
       {/* 底部导航 */}
       <section className="pt-6 border-t border-[var(--border)] flex flex-col sm:flex-row justify-between gap-3">
         <Link href="/learn/step3" className="u-btn u-btn-ghost">
