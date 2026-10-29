@@ -370,14 +370,14 @@ D. 在 gets 后面检查 granted 有没有被改`,
    * ============================================================ */
   {
     id: 'sb-format-string',
-    title: '进阶 · 低：格式化字符串泄露',
+    title: '格式化字符串泄露 · 中等难度',
     difficulty: 'basic',
     difficultyLabel: '低难度',
     vulnType: 'CWE-134 格式化字符串',
     cwe: 'CWE-134',
     minutes: 12,
     brief:
-      'log_server 是一个把用户输入写进日志的小工具。测试时有人输入了一串 %x，屏幕上居然打出了内存地址。你的任务是确认漏洞、解释原理、并给出标准修复。',
+      '日志服务器把用户输入原样塞进日志。测试时有人输了一串 %x，屏幕上居然打出了内存地址。这个漏洞危险在你根本想不到 —— printf 的第一个参数不是内容，是指令。',
     objective:
       '通过 4 个阶段掌握格式化字符串漏洞：现象识别 → 源码定位 → 偏移探测 → 修复与编译期防护。',
     stages: [
@@ -617,14 +617,14 @@ log_server.c:7:5: error: format not a string literal [-Werror=format-security]
    * ============================================================ */
   {
     id: 'sb-uaf-vtable',
-    title: '进阶 · 中：UAF 虚表劫持',
+    title: 'UAF 虚表劫持 · 中高难度',
     difficulty: 'intermediate',
     difficultyLabel: '中难度',
     vulnType: 'CWE-416 释放后重用',
     cwe: 'CWE-416',
     minutes: 15,
     brief:
-      'chat_server 用 C++ 管理连接对象。有用户发现：断开连接后再发一条消息，程序偶尔会执行意料之外的命令。你的任务是找出这块"死而复生"的内存。',
+      'C++ 聊天服务器：断开连接后再发一条消息，程序偶尔会执行意料之外的命令。原因 —— free 没置 NULL，新连接 malloc 复用了同一块内存，把 User 对象的虚表悄悄换成攻击者的东西。',
     objective:
       '通过 4 个阶段掌握 Use-After-Free：识别 UAF 模式 → 理解虚函数调用的内存机制 → 调试验证内存被占 → 选择机制级修复。',
     stages: [
@@ -873,14 +873,14 @@ Breakpoint 1, new_message (msg="sh") at chat_server.cpp:31
    * ============================================================ */
   {
     id: 'sb-rop-nx',
-    title: '进阶 · 高：NX 防护下的 ROP',
+    title: 'NX 防护下的 ROP · 高难度',
     difficulty: 'advanced',
     difficultyLabel: '高难度',
     vulnType: 'CWE-121 栈溢出 + ROP 绕过 NX',
     cwe: 'CWE-121',
     minutes: 18,
     brief:
-      'victim 存在教科书级的栈溢出，但厂商说："我们开了 NX，栈上的代码根本执行不了，安全。" 你要用 ROP 证明：防护打开 ≠ 攻击面关闭。',
+      '程序有栈溢出，但厂商说："我们开了 NX，栈上代码根本执行不了，安全。" 你要证明：防护打开 ≠ 攻击面关闭 —— 栈上不能跑 shellcode，但堆里 .text 段的 gadget 可以借过来用。',
     objective:
       '通过 5 个阶段掌握 ROP：读防护清单定策略 → 收集 gadget → 组装 ROP 链 → 解决栈对齐 → 选出能让 ROP 失效的防护组合。',
     stages: [

@@ -125,7 +125,7 @@ export default function CasesPage() {
           </div>
           <p className="text-[13.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl mb-6">
             默认关闭指导、自主完成分析。卡住时随时点「查看思路提示」；
-            难度从低到高依次是：格式化字符串 → UAF 虚表劫持 → NX 下的 ROP 对抗。
+            难度从低到高依次是：格式化字符串 → UAF 虚表劫持 → <code className="inline">{'NX'}</code><span className="text-[var(--text-muted)] font-normal">（执行禁止位）</span> 下的 <code className="inline">{'ROP'}</code><span className="text-[var(--text-muted)] font-normal">（面向返回编程）</span> 对抗。
           </p>
           <div className="grid md:grid-cols-3 gap-4">
             {advancedSandboxes.map((sb) => (
@@ -172,7 +172,7 @@ export default function CasesPage() {
             <p className="u-eyebrow">Deep Dive — 本地深度案例</p>
           </div>
           <p className="text-[13.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl mb-6">
-            沙箱通关后，想接触真实工具链（Ghidra、GDB、Mutagen）？可以下载案例包在本地虚拟机中复现，
+            沙箱通关后，想接触真实工具链（<code className="inline">{'Ghidra'}</code><span className="text-[var(--text-muted)] font-normal">（反编译器名称）</span>、<code className="inline">{'GDB'}</code><span className="text-[var(--text-muted)] font-normal">（GNU 调试器）</span>、Mutagen）？可以下载案例包在本地虚拟机中复现，
             每个案例都附带完整分析报告与防护建议。此部分为可选内容，初学阶段先以沙箱为主。
           </p>
           <div className="border-t border-[var(--border)]">

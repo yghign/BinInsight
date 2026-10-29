@@ -41,9 +41,9 @@ export default function ReferenceIndexPage() {
               逆向工作台
             </h1>
             <p className="text-[15px] text-[var(--text-muted)] leading-relaxed max-w-xl">
-              四个漏洞，每个四段。不把它们切成孤立的知识点 —— 让栈溢出的 ret 覆盖动画和
+              四个漏洞，每个四段。不把它们切成孤立的知识点 —— 让栈溢出的 <code className="inline">ret</code><span className="text-[var(--text-muted)] font-normal">（返回指令）</span> 覆盖动画和
               Use-After-Free 的虚表劫持共享同一个「控制流劫持」直觉，让格式化字符串的
-              任意写和堆利用的 tcache poisoning 在防御视角里互相印证。
+              任意写和堆利用的 <code className="inline">{'tcache poisoning'}</code><span className="text-[var(--text-muted)] font-normal">（tcache 投毒）</span> 在防御视角里互相印证。
             </p>
           </section>
 
@@ -52,9 +52,9 @@ export default function ReferenceIndexPage() {
             <div className="font-mono text-[11px] tracking-wider text-[var(--text-soft)]">METHOD</div>
             <ol className="space-y-0 border-l border-[var(--border)] pl-5">
               <Step num="01" title="原理" desc="图解 + 动画。栈帧布局、ret 覆盖方向、虚表结构 —— 给眼睛留一张能回放的图。" />
-              <Step num="02" title="演示" desc="嵌入式 GDB 终端，逐步执行。寄存器快照、rip 被 'A' 覆盖的瞬间、内存变化 —— 让漏洞可被观察。" />
+              <Step num="02" title="演示" desc={<><code className="inline">{'GDB'}</code><span className="text-[var(--text-muted)] font-normal">（GNU 调试器）</span> 终端，逐步执行。寄存器快照、<code className="inline">rip</code><span className="text-[var(--text-muted)] font-normal">（指令指针寄存器）</span> 被 'A' 覆盖的瞬间、内存变化 —— 让漏洞可被观察。</>} />
               <Step num="03" title="动手" desc="交互构造器。偏移输入 + gadget 选择 + 地址填入 → 实时拼 ASCII payload 布局 + Python 模板。" />
-              <Step num="04" title="防御视角" desc="同一漏洞 × 防护开关矩阵。Canary/NX/ASLR 一键开关，崩溃日志实时变化，代码修复选择挑战。" />
+              <Step num="04" title="防御视角" desc={<>同一漏洞 × 防护开关矩阵。<code className="inline">{'Canary'}</code><span className="text-[var(--text-muted)] font-normal">（金丝雀保护）</span>/<code className="inline">{'NX'}</code><span className="text-[var(--text-muted)] font-normal">（执行禁止位）</span>/<code className="inline">{'ASLR'}</code><span className="text-[var(--text-muted)] font-normal">（地址空间随机化）</span> 一键开关，崩溃日志实时变化，代码修复选择挑战。</>} />
             </ol>
           </section>
 
@@ -83,7 +83,7 @@ export default function ReferenceIndexPage() {
   );
 }
 
-function Step({ num, title, desc }: { num: string; title: string; desc: string }) {
+function Step({ num, title, desc }: { num: string; title: string; desc: React.ReactNode }) {
   return (
     <li className="relative py-4">
       <span className="absolute -left-[26px] top-5 flex items-center justify-center w-3 h-3 rounded-full border border-[var(--border)] bg-[var(--bg)]" aria-hidden="true" />

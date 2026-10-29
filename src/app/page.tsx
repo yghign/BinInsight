@@ -56,7 +56,7 @@ const reasons = [
   },
   {
     title: '开源工具链，本地运行',
-    desc: '基于 Ghidra 等开源生态，工具可在本地部署运行，不依赖任何在线 SaaS 服务。',
+    desc: '基于 Ghidra、IDA 等开源生态，工具可在本地部署运行，不依赖任何在线 SaaS 服务。',
   },
 ];
 
@@ -221,7 +221,7 @@ export default function HomePage() {
       {/* 收尾：左文右动作 */}
       <section className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-16 sm:px-8 md:flex-row md:items-center md:justify-between md:py-20">
         <div>
-          <h2 className="u-display mb-2 text-2xl md:text-[30px]">从第一个 ELF 文件开始</h2>
+          <h2 className="u-display mb-2 text-2xl md:text-[30px]">从第一个 <code className="inline">{'ELF'}</code><span className="text-[var(--text-muted)] font-normal">（可执行链接格式）</span> 文件开始</h2>
           <p className="text-sm text-[var(--text-muted)]">
             一步步掌握逆向分析与漏洞防护的核心技能。
           </p>

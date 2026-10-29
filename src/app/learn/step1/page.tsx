@@ -485,8 +485,8 @@ Unpacked 1 file.                 # 脱壳完成，再丢进反汇编工具`}
         />
 
         <p className="font-mono text-[12px]">
-          <Link href="/reference/formats" className="text-[var(--brand-500)] hover:underline">
-            延伸阅读 → /reference/formats 二进制格式
+          <Link href="/reference/glossary#elf-text" className="text-[var(--brand-500)] hover:underline">
+            延伸阅读 → /reference/glossary ELF .text 节 & 格式速查
           </Link>
         </p>
       </section>

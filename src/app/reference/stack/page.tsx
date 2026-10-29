@@ -18,39 +18,39 @@ const gdbSteps = [
   {
     cmd: 'gdb ./vuln',
     output: `Reading symbols from ./vuln...\n(gdb) r $(python3 -c "print('A'*200)")`,
-    note: '程序崩溃了，但 rip 还没覆盖 —— 这是第一次',
+    note: '🎯 第一次崩溃，还没覆盖',
   },
   {
     cmd: 'bt',
     output: `#0  0x000000000040116b in vulnerable (input=0x7fffffffdda0) at vuln.c:7\n#1  0x00000000004011a8 in main (argc=2, argv=0x7fffffffdd68) at vuln.c:17`,
-    note: '崩在 vulnerable 的 ret —— rip 还没被覆盖',
+    note: '💡 bt 找崩在哪',
   },
   {
     cmd: 'info registers rip rsp',
     output: `rip            0x40116b             0x40116b <vulnerable+39>\nrsp            0x7fffffffdda0       0x7fffffffdda0`,
     rip: '0x40116b',
-    note: 'rip 还是合法地址 —— 说明溢出还没覆盖到 ret',
+    note: '📍 rip 还合法',
   },
   {
     cmd: 'r $(python3 -c "print(\'A\'*80 + \'B\'*8 + \'C\'*8)")',
     output: `Starting program: ./vuln $(python3 -c "print('A'*80 + 'B'*8 + 'C'*8)")\nProgram received signal SIGSEGV, Segmentation fault.`,
-    note: '这次 rip 应该被 B/C 覆盖了',
+    note: '🚨 加大输入',
   },
   {
     cmd: 'info registers rip',
     output: `rip            0x4343434342424242   0x4343434342424242`,
     rip: '0x4343434342424242',
-    note: '✓ rip = 0x4343434342424242 —— C 是最靠后的，正好落在 ret',
+    note: '✅ rip 被 CCCCCCCC 覆盖了！',
   },
   {
     cmd: 'x/20gx $rsp',
     output: `0x7fffffffddf8:\t0x4343434342424242\t0x4141414141414141\n0x7fffffffde08:\t0x4141414141414141\t0x4141414141414141\n...`,
-    note: '栈上清晰看到 B/C/A 的顺序 —— 小端让 "CCBB" 显示成 0x4343434342424242',
+    note: '💾 栈上顺序验证',
   },
   {
     cmd: 'cyclic -l 0x42424242',
     output: `Found at offset 72`,
-    note: '偏移 = 72 —— ret 在 rbp-0x08，rbp 在 buf+0x40，所以 ret = buf+0x48 = 72',
+    note: '🧮 偏移 = 72（buf 64 + padding 8）',
   },
 ];
 
@@ -115,7 +115,7 @@ function StackFrameSVG() {
 
       {/* return address */}
       <rect x="80" y="30" width="360" height="44" fill="var(--bg-card)" stroke="var(--border)" />
-      <rect x="80" y="30" width="360" height="44" fill="color-mix(in srgb, var(--accent-red) 10%, transparent)" />
+      <rect className="anim-highlight-1" x="80" y="30" width="360" height="44" fill="color-mix(in srgb, var(--accent-red) 10%, transparent)" />
       <text x="94" y="49" fill="var(--accent-red)">RETURN ADDRESS</text>
       <text x="94" y="65" fill="var(--text-soft)" fontSize="10">← 控制流劫持的目标</text>
       <text x="380" y="49" fill="var(--text-soft)" fontSize="10">rbp + 8</text>
@@ -127,7 +127,7 @@ function StackFrameSVG() {
 
       {/* canary */}
       <rect x="80" y="138" width="360" height="38" fill="var(--bg-card)" stroke="var(--border)" />
-      <rect x="80" y="138" width="360" height="38" fill="color-mix(in srgb, var(--accent-orange) 8%, transparent)" />
+      <rect className="anim-highlight-2" x="80" y="138" width="360" height="38" fill="color-mix(in srgb, var(--accent-orange) 8%, transparent)" />
       <text x="94" y="157" fill="var(--accent-orange)">STACK CANARY</text>
       <text x="380" y="157" fill="var(--text-soft)" fontSize="10">rbp − 8</text>
 
@@ -141,7 +141,7 @@ function StackFrameSVG() {
       <text x="94" y="237" fill="var(--brand-500)">char buf[64]</text>
       <text x="380" y="237" fill="var(--text-soft)" fontSize="10">rbp − 0x40</text>
       {/* 溢出箭头 */}
-      <path d="M 260 290 L 260 74" stroke="var(--accent-red)" strokeWidth="1.5" markerEnd="url(#arrow)" fill="none" />
+      <path className="anim-highlight-3" d="M 260 290 L 260 74" stroke="var(--accent-red)" strokeWidth="1.5" markerEnd="url(#arrow)" fill="none" />
       <text x="270" y="180" fill="var(--accent-red)" fontSize="10">
         ← 溢出方向：buf 起始 → 向上生长（地址减小方向）
       </text>
@@ -157,7 +157,7 @@ function StackFrameSVG() {
       </defs>
 
       {/* 标注偏移 */}
-      <text x="450" y="255" fill="var(--text-soft)" fontSize="10">偏移 = 72</text>
+      <text className="anim-highlight-4" x="450" y="255" fill="var(--text-soft)" fontSize="10">偏移 = 72</text>
       <text x="450" y="269" fill="var(--text-soft)" fontSize="10">(64 + 8)</text>
       <line x1="450" y1="272" x2="450" y2="74" stroke="var(--text-soft)" strokeDasharray="2,2" />
     </svg>
@@ -186,7 +186,7 @@ export default function StackPage() {
         <h1 className="u-display text-2xl md:text-[32px]">栈溢出</h1>
         <p className="text-[15px] text-[var(--text-muted)] leading-relaxed max-w-2xl">
           最经典的内存破坏。当 <code className="inline">strcpy</code> 不知道缓冲区只有 64 字节时，
-          多出的 8 字节会一路"爬"过金丝雀、保存的 rbp、直接覆盖 <code className="inline">ret</code>
+          多出的 8 字节会一路"爬"过金丝雀、保存的 <code className="inline">rbp</code><span className="text-[var(--text-muted)] font-normal">（帧基址寄存器）</span>、直接覆盖 <code className="inline">ret</code><span className="text-[var(--text-muted)] font-normal">（返回指令）</span>
           弹出的返回地址 —— 下一条指令就由你决定。
         </p>
       </header>
@@ -196,8 +196,8 @@ export default function StackPage() {
         <SectionHeader num="01" label="原理" />
         <p className="text-[14.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl">
           CPU 栈从<b className="text-[var(--text)]">高地址向低地址生长</b>，每调用一次函数：
-          把返回地址压栈 → 跳进去 → 函数内 <code className="inline">sub rsp, 0x50</code> 圈出缓冲区。
-          <code className="inline">ret</code> 等价于 <code className="inline">pop rip</code> ——
+          把返回地址压栈 → 跳进去 → 函数内 <code className="inline">sub rsp</code><span className="text-[var(--text-muted)] font-normal">（栈顶指针）</span> 圈出缓冲区。
+          <code className="inline">ret</code> 等价于 <code className="inline">pop rip</code><span className="text-[var(--text-muted)] font-normal">（指令指针寄存器）</span> ——
           谁能改栈上那块返回地址，谁就能控制 RIP。
         </p>
         <StackFrameSVG />
@@ -216,7 +216,7 @@ export default function StackPage() {
       <section className="space-y-5" id="demo">
         <SectionHeader num="02" label="演示" />
         <p className="text-[14.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl">
-          下面的终端是预录制好的 GDB 会话。<b className="text-[var(--text)]">点 "step →"</b> 逐行走，
+          下面的终端是预录制好的 <code className="inline">{'GDB'}</code><span className="text-[var(--text-muted)] font-normal">（GNU 调试器）</span> 会话。<b className="text-[var(--text)]">点 "step →"</b> 逐行走，
           或按 <b className="text-[var(--text)]">"▶ auto"</b> 自动播放。看 rip 从合法值
           <code className="inline">0x40116b</code> 变成被 'C' 覆盖的 <code className="inline">0x43434343…</code>。
         </p>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import ModeToggle, { type Mode } from '@/components/ModeToggle';
@@ -75,9 +75,9 @@ const disassemblyWithSymbols = `0000000000401132 <vulnerable>:
 
 interface LineExplanation {
   /** 这一行在做什么 */
-  what: string;
+  what: ReactNode;
   /** 是 / 不是危险点的原因 */
-  why: string;
+  why: ReactNode;
   /** 是否为本练习要找的危险调用 */
   danger?: boolean;
 }
@@ -88,8 +88,8 @@ interface LineExplanation {
  */
 const lineExplanations: LineExplanation[] = [
   { what: '函数标签：vulnerable 函数从地址 0x401132 开始。', why: '标签不是指令，不可能是漏洞点 —— 但它告诉我们"下面进入 vulnerable 函数"。（顺带：能看到函数名，是因为符号表没被 strip。）' },
-  { what: '函数序言第一步：把调用者的栈底指针 rbp 压栈保存。', why: '不是危险点。这是所有函数开头都有的固定动作，用于建立栈帧。' },
-  { what: '函数序言第二步：把当前栈顶 rsp 设为新栈帧的底 rbp。', why: '不是危险点。序言的固定动作，和上一行配套。' },
+  { what: <>函数序言第一步：把调用者的栈底指针 <code className="inline">rbp</code><span className="text-[var(--text-muted)] font-normal">（帧基址寄存器）</span> 压栈保存。</>, why: '不是危险点。这是所有函数开头都有的固定动作，用于建立栈帧。' },
+  { what: <>函数序言第二步：把当前栈顶 <code className="inline">rsp</code><span className="text-[var(--text-muted)] font-normal">（栈顶指针）</span> 设为新栈帧的底 rbp。</>, why: '不是危险点。序言的固定动作，和上一行配套。' },
   { what: '栈顶下移 0x50（80 字节），为局部变量腾出空间。', why: '不是危险点。只是在"圈地"开辟栈空间，还没有任何数据流入。' },
   { what: '把第一个参数（input 指针，在 rdi 寄存器里）保存到栈上。', why: '不是危险点。x86-64 调用约定里第一个参数放 rdi —— 这行只是存放指针，还没有拷贝数据。' },
   { what: '把刚保存的 input 指针取回到 rdx 寄存器。', why: '不是危险点。普通的数据搬运。' },
@@ -97,7 +97,7 @@ const lineExplanations: LineExplanation[] = [
   { what: '把 input 指针放进 rsi —— strcpy 的第二个参数（源）。', why: '不是危险点。调用前的参数准备。' },
   { what: '把 buffer 地址放进 rdi —— strcpy 的第一个参数（目标）。', why: '不是危险点。参数准备。x86-64 约定：rdi = 第 1 个参数，rsi = 第 2 个参数。' },
   { what: '调用 strcpy：把 input 指向的字符串完整拷贝进 buffer。', why: '★ 就是它！strcpy 不知道 buffer 只有 64 字节 —— input 有多长它就拷多长，多出的部分会覆盖栈上相邻的数据（甚至返回地址）。这就是经典的栈溢出源头。', danger: true },
-  { what: '再次取 buffer 的地址，这次是给 printf 用。', why: '不是危险点。普通参数准备。' },
+  { what: <>再次取 buffer 的地址，这次是给 <code className="inline">printf</code><span className="text-[var(--text-muted)] font-normal">（格式化输出函数）</span> 用。</>, why: '不是危险点。普通参数准备。' },
   { what: '把 buffer 地址放进 rsi（printf 的第二个参数）。', why: '不是危险点。参数准备。' },
   { what: '取格式串 "Input: %s\\n" 的地址放进 rdi。', why: '不是危险点。注意：格式串是写死在程序里的常量 —— 这正是 printf 用法安全的关键。' },
   { what: '把 eax 清零（表示本次调用不使用向量寄存器传参）。', why: '不是危险点。调用约定的细节动作。' },
@@ -206,7 +206,7 @@ export default function Step2Page() {
           </p>
           <p>
             <strong className="text-[var(--text)]">反编译（Decompilation）</strong>：比反汇编更进一步，
-            尝试将汇编代码还原成类 C 的高级语言代码（如 Ghidra 的 Decompiler、IDA 的 Hex-Rays）。
+            尝试将汇编代码还原成类 C 的高级语言代码（如 <code className="inline">{'Ghidra'}</code><span className="text-[var(--text-muted)] font-normal">（反编译器名称）</span> 的 Decompiler、<code className="inline">{'IDA'}</code><span className="text-[var(--text-muted)] font-normal">（反汇编器名称）</span> 的 Hex-Rays）。
           </p>
           {mode === 'beginner' && (
             <p>
@@ -493,7 +493,7 @@ export default function Step2Page() {
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="font-mono text-[var(--text-soft)]">—</span>
-                <span>动态链接的库函数仍可通过 PLT/GOT 识别，但内部函数完全匿名</span>
+                <span>动态链接的库函数仍可通过 <code className="inline">{'PLT'}</code><span className="text-[var(--text-muted)] font-normal">（过程链接表）</span>/<code className="inline">{'GOT'}</code><span className="text-[var(--text-muted)] font-normal">（全局偏移表）</span> 识别，但内部函数完全匿名</span>
               </li>
               <li className="flex items-start gap-2.5">
                 <span className="font-mono text-[var(--text-soft)]">—</span>
@@ -584,20 +584,23 @@ export default function Step2Page() {
         <div className="u-panel p-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
             {[
-              ['mov', '数据搬运：寄存器 ↔ 内存 ↔ 立即数'],
-              ['lea', '计算地址：取变量指针，不访问内存本身'],
-              ['push', '压栈：保存数据，栈顶 rsp 下移'],
-              ['pop', '弹栈：取回数据，栈顶 rsp 上移'],
-              ['call', '调用函数：压入返回地址后跳转'],
-              ['ret', '函数返回：弹出返回地址并跳过去——溢出攻击的跳板'],
-              ['cmp', '比较两个值，结果只写进标志位'],
-              ['jcc', '条件跳转（je / jne / jg…）：看 cmp 的标志位决定走向'],
-            ].map(([name, desc]) => (
-              <div key={name} className="flex items-baseline gap-2.5 text-[13px]">
+              { name: 'mov', desc: '数据搬运：寄存器 ↔ 内存 ↔ 立即数' },
+              { name: 'lea', desc: '计算地址：取变量指针，不访问内存本身' },
+              { name: 'push', desc: '压栈：保存数据，栈顶 rsp 下移' },
+              { name: 'pop', desc: '弹栈：取回数据，栈顶 rsp 上移' },
+              { name: 'call', desc: '调用函数：压入返回地址后跳转' },
+              { name: 'ret', desc: '函数返回：弹出返回地址并跳过去——溢出攻击的跳板', comment: '（返回指令）' },
+              { name: 'cmp', desc: '比较两个值，结果只写进标志位' },
+              { name: 'jcc', desc: '条件跳转（je / jne / jg…）：看 cmp 的标志位决定走向' },
+            ].map((item) => (
+              <div key={item.name} className="flex items-baseline gap-2.5 text-[13px]">
                 <code className="inline flex-shrink-0 !bg-transparent !p-0 text-[var(--accent-cyan)]">
-                  {name}
+                  {item.name}
                 </code>
-                <span className="text-[var(--text-muted)]">{desc}</span>
+                {item.comment && (
+                  <span className="text-[var(--text-muted)] font-normal text-[12px]">{item.comment}</span>
+                )}
+                <span className="text-[var(--text-muted)]">{item.desc}</span>
               </div>
             ))}
           </div>
@@ -628,8 +631,8 @@ export default function Step2Page() {
         </p>
 
         <p className="font-mono text-[12px]">
-          <Link href="/reference/isa" className="text-[var(--brand-500)] hover:underline">
-            延伸阅读 → /reference/isa 指令集速查
+          <Link href="/reference/stack#principle" className="text-[var(--brand-500)] hover:underline">
+            延伸阅读 → /reference/stack 栈溢出原理（含 x86 调用约定 & 栈帧）
           </Link>
         </p>
       </section>

@@ -212,10 +212,11 @@ export default function FmtstrPage() {
         </div>
         <h1 className="u-display text-2xl md:text-[32px]">格式化字符串</h1>
         <p className="text-[15px] text-[var(--text-muted)] leading-relaxed max-w-2xl">
-          <code className="inline">{'printf(user_input)'}</code> 里 user_input 本来应该是"内容"，
+          <code className="inline">{'printf'}</code><span className="text-[var(--text-muted)] font-normal">（格式化输出函数）</span>
+          <code className="inline">{'(user_input)'}</code> 里 user_input 本来应该是"内容"，
           却被 printf 当成了"<b className="text-[var(--text)]">格式串</b>"。
-          <code className="inline">{'%p'}</code> 能泄露栈上任意值（包括 libc 基址），
-          <code className="inline">{'%n'}</code> 能把 printf 已输出的字符数写到任意地址 ——
+          <code className="inline">{'%p'}</code><span className="text-[var(--text-muted)] font-normal">（指针占位符）</span> 能泄露栈上任意值（包括 libc 基址），
+          <code className="inline">{'%n'}</code><span className="text-[var(--text-muted)] font-normal">（写字符数）</span> 能把 printf 已输出的字符数写到任意地址 ——
           一条泄露链 + 一次任意写，两个漏洞类的组合拳。
         </p>
       </header>
@@ -258,7 +259,7 @@ export default function FmtstrPage() {
             <li><code className="inline">{'%p'}</code> 不写东西，只泄露 —— 是绕过 ASLR 的第一块多米诺</li>
             <li><code className="inline">{'%n'}</code> 写一个 4 字节整数，值是"printf 已输出了多少字符" —— 任意写的威力取决于你能不能精确控制这个值</li>
             <li>偏移定位技巧：在 payload 里塞 <code className="inline">AAAA</code>，然后用足够多的 <code className="inline">{'%p'}</code> 把栈翻出来 —— 看到 <code className="inline">0x41414141</code> 就是输入起始，前面数几个就是 offset</li>
-            <li>Canary <b className="text-[var(--accent-red)]">不管 fmtstr</b> —— 它走 printf 内部的 %n 写 GOT，根本不碰栈上的 return address</li>
+            <li><code className="inline">{'Canary'}</code><span className="text-[var(--text-muted)] font-normal">（金丝雀保护）</span> <b className="text-[var(--accent-red)]">不管 fmtstr</b> —— 它走 printf 内部的 %n 写 <code className="inline">{'GOT'}</code><span className="text-[var(--text-muted)] font-normal">（全局偏移表）</span>，根本不碰栈上的 return address</li>
           </ul>
         </div>
       </section>
@@ -267,7 +268,7 @@ export default function FmtstrPage() {
       <section className="space-y-5" id="demo">
         <SectionHeader num="02" label="演示" />
         <p className="text-[14.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl">
-          下面的终端是预录制好的 GDB 会话。核心三步：
+          下面的终端是预录制好的 <code className="inline">{'GDB'}</code><span className="text-[var(--text-muted)] font-normal">（GNU 调试器）</span> 会话。核心三步：
           <b className="text-[var(--text)]">① 用 %p 扫描栈泄露 libc 基址</b> →
           <b className="text-[var(--text)]">② 用 AAAA%p... 定位输入偏移</b> →
           <b className="text-[var(--text)]">③ 用 %n 把 free@GOT 改成 system</b>。

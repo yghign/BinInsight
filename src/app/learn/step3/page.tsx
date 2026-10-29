@@ -754,14 +754,14 @@ rip            0x4141414141414141  # 'A' = 0x41，返回地址已被覆盖
           <li className="flex items-start gap-2.5">
             <span className="font-mono text-[var(--text-soft)]">—</span>
             <span>
-              <code className="inline">info registers</code>：rip 显示 0x4141… 说明返回地址被
+              <code className="inline">info registers</code>：<code className="inline">rip</code><span className="text-[var(--text-muted)] font-normal">（指令指针寄存器）</span> 显示 0x4141… 说明返回地址被
               &apos;A&apos;（0x41）覆盖——覆盖 = 可控 = RIP 到手
             </span>
           </li>
           <li className="flex items-start gap-2.5">
             <span className="font-mono text-[var(--text-soft)]">—</span>
             <span>
-              <code className="inline">x/8gx $rsp</code>：查看栈顶 8 个 64 位值，确认溢出数据的落点
+              <code className="inline">x/8gx $rsp</code>：查看栈顶 8 个 64 位值（<code className="inline">rsp</code><span className="text-[var(--text-muted)] font-normal">（栈顶指针）</span> 指向的位置），确认溢出数据的落点
             </span>
           </li>
         </ul>
@@ -771,8 +771,8 @@ rip            0x4141414141414141  # 'A' = 0x41，返回地址已被覆盖
         </p>
 
         <p className="font-mono text-[12px]">
-          <Link href="/reference/dynamic" className="text-[var(--brand-500)] hover:underline">
-            延伸阅读 → /reference/dynamic 动态分析
+          <Link href="/reference/stack#demo" className="text-[var(--brand-500)] hover:underline">
+            延伸阅读 → /reference/stack 演示（嵌入式 <code className="inline">{'GDB'}</code><span className="text-[var(--text-muted)] font-normal">（GNU 调试器）</span> 逐步执行模拟器）
           </Link>
         </p>
       </section>

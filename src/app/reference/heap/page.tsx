@@ -218,10 +218,10 @@ export default function HeapPage() {
         </div>
         <h1 className="u-display text-2xl md:text-[32px]">堆利用入门</h1>
         <p className="text-[15px] text-[var(--text-muted)] leading-relaxed max-w-2xl">
-          比栈溢出更精细，也更依赖 glibc 版本。<b className="text-[var(--text)]">tcache poisoning</b>
+          比栈溢出更精细，也更依赖 glibc 版本。<b className="text-[var(--text)]"><code className="inline">{'tcache poisoning'}</code><span className="text-[var(--text-muted)] font-normal">（tcache 投毒）</span></b>
           让下次 <code className="inline">{'malloc'}</code> 返回任意地址，<b className="text-[var(--text)]">unsorted bin 泄露</b>
           main_arena 算出 libc 基址，<b className="text-[var(--text)]">double free</b>
-          让同一个 chunk 同时出现在空闲链里 —— 这些是现代 Pwn 的主战场。
+          让同一个 <code className="inline">chunk</code><span className="text-[var(--text-muted)] font-normal">（堆块）</span> 同时出现在空闲链里 —— 这些是现代 Pwn 的主战场。
         </p>
       </header>
 
@@ -230,7 +230,7 @@ export default function HeapPage() {
         <SectionHeader num="01" label="原理" />
         <p className="text-[14.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl">
           glibc 的 <code className="inline">malloc/free</code> 分三层：线程私有
-          <code className="inline"> tcache</code>（2.26 引入）→ 线程共享的
+          <code className="inline">tcache</code><span className="text-[var(--text-muted)] font-normal">（线程私有缓存）</span>（2.26 引入）→ 线程共享的
           <code className="inline"> fastbin / smallbin / largebin</code> → 最后还有一个
           <code className="inline"> unsorted bin</code> 暂存中等大小的 free chunk。
           每个 chunk 头部 16 字节：<code className="inline">size | flags</code> +
@@ -247,7 +247,7 @@ export default function HeapPage() {
             </li>
             <li>
               <b className="text-[var(--accent-orange)]">unsorted bin 泄露</b>：
-              free 一个较大 chunk 会把 main_arena 的地址写进它的 <code className="inline">{'fd/bk'}</code>，
+              free 一个较大 chunk 会把 main_<code className="inline">{'arena'}</code><span className="text-[var(--text-muted)] font-normal">（堆竞技场）</span> 的地址写进它的 <code className="inline">{'fd/bk'}</code>，
               用一个 UAF 读出来就能算 libc 基址
             </li>
             <li>

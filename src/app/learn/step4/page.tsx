@@ -680,7 +680,7 @@ void dispatch(callback_t cb, int arg) {
                     程序运行时实时修改指令。
                   </p>
                   <p className="font-mono text-[11px] text-[var(--text-soft)] mt-2">
-                    Pin · DynamoRIO · Frida
+                    Pin · DynamoRIO · <code className="inline">{'Frida'}</code><span className="text-[var(--text-muted)] font-normal">（动态插桩框架）</span>
                   </p>
                 </div>
                 <div className="bg-[var(--bg-card)] p-5">
@@ -739,7 +739,7 @@ void dispatch(callback_t cb, int arg) {
                   </h5>
                   <ol className="text-[12.5px] text-[var(--text-muted)] space-y-2">
                     {[
-                      '用 IDA Pro 分别分析补丁前后的两个二进制',
+                      <>用 <code className="inline">{'IDA'}</code><span className="text-[var(--text-muted)] font-normal">（反汇编器）</span> Pro 分别分析补丁前后的两个二进制</>,
                       '导出 .idb 或 .i64 数据库文件',
                       'BinDiff 加载两个数据库进行比对',
                       '按相似度排序，找出变化最大的函数',
@@ -853,8 +853,8 @@ void dispatch(callback_t cb, int arg) {
         </p>
 
         <p className="font-mono text-[12px]">
-          <Link href="/reference/protections" className="text-[var(--brand-500)] hover:underline">
-            延伸阅读 → /reference/protections 防护与对抗
+          <Link href="/reference/stack#defense" className="text-[var(--brand-500)] hover:underline">
+            延伸阅读 → /reference/stack 防御视角（防护开关矩阵 + 代码修复挑战）
           </Link>
         </p>
       </section>

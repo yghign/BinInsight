@@ -15,14 +15,14 @@ export const metadata = {
 /* ---------- GDB 步进 ---------- */
 
 const gdbSteps = [
-  { cmd: 'gdb ./uaf', output: `Reading symbols from ./uaf...\n(gdb) r`, note: '先看程序正常打印' },
-  { cmd: 'break 15', output: `Breakpoint 1 at 0x401234: file uaf.c, line 15.\n(gdb) r`, note: '在 free(p) 那行断住' },
-  { cmd: 'print p->name', output: `$1 = "Alice"`, note: 'free 之前数据还在' },
-  { cmd: 'next', output: `16\tif (p && p->vtable->say()) {`, note: 'free 执行了，现在 p 成了悬垂指针' },
-  { cmd: 'print p', output: `$2 = (struct User *) 0x55555556a010`, note: 'p 的地址没变！free 只把块还给 arena，不改指针' },
-  { cmd: 'print *p', output: `$3 = {vtable = 0x4013a8, name = 0x4013e0 "Alice"}\n(gdb) x/8x 0x55555556a010`, note: 'free 后数据残留 —— 这是悬垂指针的关键' },
-  { cmd: 'r $(python3 -c "print(\'A\'*0x20 + \'B\'*8)")', output: `Program received signal SIGSEGV, Segmentation fault.\n0x0000000041414141 in ?? ()`, note: '我们 malloc 一个 0x20 块刚好复用 User 的旧位置，把 vtable 覆写成 0x41414141' },
-  { cmd: 'info registers rip', output: `rip            0x4141414141414141   0x4141414141414141`, rip: '0x4141414141414141', note: '✓ rip 被覆盖 —— vtable 劫持成功' },
+  { cmd: 'gdb ./uaf', output: `Reading symbols from ./uaf...\n(gdb) r`, note: '🎯 正常跑一次看看' },
+  { cmd: 'break 15', output: `Breakpoint 1 at 0x401234: file uaf.c, line 15.\n(gdb) r`, note: '📍 在 free(p) 断住' },
+  { cmd: 'print p->name', output: `$1 = "Alice"`, note: '💡 free 前数据还在' },
+  { cmd: 'next', output: `16\tif (p && p->vtable->say()) {`, note: '🚨 free 了！p 变成悬垂指针' },
+  { cmd: 'print p', output: `$2 = (struct User *) 0x55555556a010`, note: '💀 地址没变（free 不置 NULL）' },
+  { cmd: 'print *p', output: `$3 = {vtable = 0x4013a8, name = 0x4013e0 "Alice"}\n(gdb) x/8x 0x55555556a010`, note: '💾 残留数据还在' },
+  { cmd: 'r $(python3 -c "print(\'A\'*0x20 + \'B\'*8)")', output: `Program received signal SIGSEGV, Segmentation fault.\n0x0000000041414141 in ?? ()`, note: '⚡ 同大小 malloc 复用地址，覆写 vtable' },
+  { cmd: 'info registers rip', output: `rip            0x4141414141414141   0x4141414141414141`, rip: '0x4141414141414141', note: '✅ rip 被 0x41414141... 覆盖！' },
 ];
 
 /* ---------- 漏洞代码 ---------- */
@@ -105,7 +105,7 @@ function VtableSVG() {
       </g>
       {/* vtable 块 */}
       <g>
-        <rect x="360" y="30" width="140" height="40" fill="color-mix(in srgb, var(--accent-green) 8%, transparent)" stroke="var(--border)" strokeDasharray="2,2" />
+        <rect className="anim-highlight-1" x="360" y="30" width="140" height="40" fill="color-mix(in srgb, var(--accent-green) 8%, transparent)" stroke="var(--border)" strokeDasharray="2,2" />
         <text x="374" y="49" fill="var(--accent-green)">User_vtable</text>
         <text x="374" y="64" fill="var(--text-muted)">say() → 0x401200</text>
       </g>
@@ -117,7 +117,7 @@ function VtableSVG() {
 
       {/* 悬垂 + 新 malloc */}
       <g>
-        <rect x="80" y="130" width="220" height="60" fill="color-mix(in srgb, var(--accent-orange) 12%, transparent)" stroke="var(--border)" />
+        <rect className="anim-highlight-2" x="80" y="130" width="220" height="60" fill="color-mix(in srgb, var(--accent-orange) 12%, transparent)" stroke="var(--border)" />
         <text x="94" y="149" fill="var(--accent-orange)">free 后地址不变</text>
         <text x="94" y="165" fill="var(--text-muted)">p == 0x55555556a010</text>
         <text x="94" y="180" fill="var(--text-soft)">（块已还给 glibc arena）</text>
@@ -125,7 +125,7 @@ function VtableSVG() {
 
       {/* 覆写的块 */}
       <g>
-        <rect x="80" y="220" width="220" height="60" fill="color-mix(in srgb, var(--accent-red) 12%, transparent)" stroke="var(--accent-red)" />
+        <rect className="anim-highlight-3" x="80" y="220" width="220" height="60" fill="color-mix(in srgb, var(--accent-red) 12%, transparent)" stroke="var(--accent-red)" />
         <text x="94" y="239" fill="var(--accent-red)">攻击者 malloc(0x20) → 复用同地址</text>
         <text x="94" y="255" fill="var(--text-muted)">+0x00: 0x41414141 ← 覆写 vtable！</text>
         <text x="94" y="270" fill="var(--text-muted)">+0x08: padding</text>
@@ -136,7 +136,7 @@ function VtableSVG() {
       <path d="M 300 250 L 460 250" stroke="var(--accent-red)" strokeWidth="1.5" markerEnd="url(#uaf-arr)" />
 
       <g>
-        <rect x="360" y="232" width="140" height="36" fill="var(--bg-card)" stroke="var(--accent-red)" />
+        <rect className="anim-highlight-4" x="360" y="232" width="140" height="36" fill="var(--bg-card)" stroke="var(--accent-red)" />
         <text x="374" y="254" fill="var(--accent-red)">((void*)0x41414141)() → RIP</text>
       </g>
 
@@ -179,7 +179,7 @@ export default function UafPage() {
         <SectionHeader num="01" label="原理" />
         <p className="text-[14.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl">
           堆分配器的关键特性：<b className="text-[var(--text)]">free 不清除数据</b>，
-          只把块还给 arena；下次同大小的 malloc 会优先复用刚释放的位置。
+          只把块还给 <code className="inline">{'arena'}</code><span className="text-[var(--text-muted)] font-normal">（堆竞技场）</span>；下次同大小的 malloc 会优先复用刚释放的位置。
           这就让 Use-After-Free 变成 <code className="inline">free(p) + malloc_same_size → 地址复用</code> 的必然结果。
         </p>
         <VtableSVG />
@@ -189,7 +189,7 @@ export default function UafPage() {
             <li>free 只清元数据，<b className="text-[var(--text)]">不清数据</b> —— 悬垂指针第一次解引用可能是"旧数据还在"</li>
             <li>类型混淆 = 两个不同"类型"的指针指向<b className="text-[var(--text)]">同一块内存</b></li>
             <li>vtable 劫持 = 把 <code className="inline">{'*(ptr + 0x00)'}</code> 改成你自己的"虚表"数组，<code className="inline">{'ptr->vtable[0]'}</code> 就是目标地址</li>
-            <li>比栈溢出更隐蔽：Canary 只管栈，不管堆</li>
+            <li>比栈溢出更隐蔽：<code className="inline">{'Canary'}</code><span className="text-[var(--text-muted)] font-normal">（金丝雀保护）</span> 只管栈，不管堆</li>
           </ul>
         </div>
       </section>
