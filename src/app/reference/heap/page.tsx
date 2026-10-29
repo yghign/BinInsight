@@ -231,8 +231,8 @@ export default function HeapPage() {
         <p className="text-[14.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl">
           glibc 的 <code className="inline">malloc/free</code> 分三层：线程私有
           <code className="inline">tcache</code><span className="text-[var(--text-muted)] font-normal">（线程私有缓存）</span>（2.26 引入）→ 线程共享的
-          <code className="inline"> fastbin / smallbin / largebin</code> → 最后还有一个
-          <code className="inline"> unsorted bin</code> 暂存中等大小的 free chunk。
+          <code className="inline">{'fastbin / smallbin / largebin'}</code><span className="text-[var(--text-muted)] font-normal">（glibc 堆空闲桶分类）</span> → 最后还有一个
+          <code className="inline">{'unsorted bin'}</code><span className="text-[var(--text-muted)] font-normal">（堆暂存桶）</span> 暂存中等大小的 free chunk。
           每个 chunk 头部 16 字节：<code className="inline">size | flags</code> +
           <code className="inline"> fd</code>/<code className="inline">next</code>（free 状态下存链表指针）。
         </p>
@@ -291,8 +291,8 @@ export default function HeapPage() {
       <section className="space-y-5" id="defense">
         <SectionHeader num="04" label="防御视角" />
         <p className="text-[14.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl">
-          打开 <code className="inline">tcache poisoning check</code>、
-          <code className="inline">safe-linking</code>、ASLR 的任意组合，看 double free 还能不能打通；
+          打开 <code className="inline">{'tcache poisoning check'}</code><span className="text-[var(--text-muted)] font-normal">（tcache 投毒检测）</span>、
+          <code className="inline">{'safe-linking'}</code><span className="text-[var(--text-muted)] font-normal">（安全链接机制）</span>、ASLR 的任意组合，看 double free 还能不能打通；
           然后选修复方式 —— C 风格 <code className="inline">a = NULL</code> 还是 C++ RAII。
         </p>
         <DefenseSwitcher

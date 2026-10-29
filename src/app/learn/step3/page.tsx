@@ -748,7 +748,7 @@ rip            0x4141414141414141  # 'A' = 0x41，返回地址已被覆盖
           <li className="flex items-start gap-2.5">
             <span className="font-mono text-[var(--text-soft)]">—</span>
             <span>
-              <code className="inline">bt</code>（backtrace）：打印调用栈，看程序崩在哪个函数、从哪里调过来
+              <code className="inline">bt</code><span className="text-[var(--text-muted)] font-normal">（打印调用栈）</span>：看程序崩在哪个函数、从哪里调过来
             </span>
           </li>
           <li className="flex items-start gap-2.5">

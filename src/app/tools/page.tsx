@@ -54,7 +54,7 @@ export default function ToolsPage() {
           <h1 className="u-display text-3xl md:text-[40px] mb-3">工具下载与使用</h1>
           <p className="text-[15px] text-[var(--text-muted)] max-w-2xl leading-relaxed">
             两款互补工具形成完整梯度：从一键自动化到手动精细控制，满足不同深度的分析需求。
-            均依赖 <code className="inline">Ghidra</code>，请先安装。
+            均依赖 <code className="inline">{'Ghidra'}</code><span className="text-[var(--text-muted)] font-normal">（反编译器）</span>，请先安装。
           </p>
         </div>
       </div>

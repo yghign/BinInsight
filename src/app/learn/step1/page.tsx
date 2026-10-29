@@ -372,7 +372,7 @@ export default function Step1Page() {
           </div>
           <p className="text-[15px] text-[var(--text-muted)] leading-relaxed">
             在 IoT 安全分析中，你拿到的往往不是 ELF 文件，而是完整的固件镜像。
-            <code className="inline">binwalk</code> 是固件分析的瑞士军刀，它能通过文件签名识别出
+            <code className="inline">{'binwalk'}</code><span className="text-[var(--text-muted)] font-normal">（固件分析工具）</span> 是固件分析的瑞士军刀，它能通过文件签名识别出
             固件中嵌入的文件系统、压缩数据、引导程序等。
           </p>
 
