@@ -38,11 +38,11 @@ const pipeline = [
 const faqs = [
   {
     q: 'Dilipa 和 Mutagen 有什么区别？',
-    a: 'Mutagen 是一键式自动化工具，自动发现漏洞并生成补丁，适合批量扫描；Dilipa 是手动微补丁实验台，CLI 负责扫描分析，网页工作台负责可视化展示，重点是理解「call strcpy@plt → call strncpy@plt」的具体指令变化。',
+    a: 'Mutagen 是一键式自动化工具，自动发现漏洞并生成补丁，适合批量扫描；Dilipa 是手动微补丁实验台，CLI/GUI 负责扫描分析，网页工作台负责可视化展示，重点是理解「call strcpy@plt → call strncpy@plt」的具体指令变化。',
   },
   {
-    q: 'Dilipa CLI 需要 Ghidra 吗？',
-    a: '不需要。CLI 用 pyelftools 解析 ELF + capstone 反汇编，纯 Python 实现，安装即用。Ghidra 提升是 Dilipa 设想的高级特性，当前版本暂不支持。',
+    q: 'Windows 用户怎么用？需要 Kali 吗？',
+    a: '不需要。下载 dilipa.exe 双击启动 GUI，选择 ELF 文件就能扫描。Dilipa 是 ELF 二进制分析器（Linux/Unix/Android native 格式），纯 Python 实现，pyelftools + capstone，Windows 上原生能跑。',
   },
   {
     q: 'patch 命令能真的改二进制吗？',
@@ -50,7 +50,7 @@ const faqs = [
   },
   {
     q: '支持 Windows .exe 吗？',
-    a: '当前只支持 ELF (Linux/Unix 二进制)。PE 格式支持需要 pefile 等额外依赖，暂未实现。建议在 Kali Linux 上编译测试程序。',
+    a: '暂不支持 PE 格式 (.exe / .dll)。Dilipa 当前聚焦 ELF（Linux、Unix、Android so）。PE 支持需要 pefile + 额外反汇编适配，是后续迭代方向。',
   },
 ];
 
@@ -77,8 +77,8 @@ export default function DilipaPage() {
           </p>
           <p className="text-[14px] text-[var(--text-muted)] max-w-2xl leading-relaxed">
             把二进制补丁表达为对提升后 C 代码的编辑。
-            <strong className="text-[var(--text)]">CLI 工具</strong> 用 pyelftools + capstone 真实解析 ELF，
-            <strong className="text-[var(--text)]">网页工作台</strong> 把修改过程可视化 —— 两条路任选。
+            <strong className="text-[var(--text)]">Dilipa</strong> 用 pyelftools + capstone 真实解析 ELF，
+            内置 <strong className="text-[var(--text)]">tkinter GUI</strong> 双击即用 —— Windows 用户开箱即用。
           </p>
 
           {/* 下载按钮组 */}
@@ -90,7 +90,7 @@ export default function DilipaPage() {
               className="u-btn u-btn-primary"
             >
               <span className="font-mono text-[11px] mr-1">↓</span>
-              下载 Dilipa CLI
+              下载 dilipa.exe (Windows)
               <span className="font-mono ml-1" aria-hidden="true">↗</span>
             </a>
             <a
@@ -103,45 +103,52 @@ export default function DilipaPage() {
               <span className="font-mono ml-1" aria-hidden="true">↗</span>
             </a>
             <a
-              href="#cli-install"
+              href="#how-to-use"
               className="u-btn u-btn-ghost"
             >
-              pip / 源码安装
+              怎么用？
             </a>
           </div>
         </div>
       </section>
 
-      {/* CLI 安装说明 */}
-      <section id="cli-install" className="max-w-5xl mx-auto px-5 sm:px-8 py-8 md:py-10 scroll-mt-24">
-        <p className="u-eyebrow mb-2">CLI Installation</p>
+      {/* 使用指南 */}
+      <section id="how-to-use" className="max-w-5xl mx-auto px-5 sm:px-8 py-8 md:py-10 scroll-mt-24">
+        <p className="u-eyebrow mb-2">How to Use</p>
         <div className="grid md:grid-cols-2 gap-4 md:gap-6">
           <div className="u-panel p-5">
-            <h3 className="text-[14px] font-semibold mb-3">pip 安装（开发 / Kali Linux）</h3>
+            <h3 className="text-[14px] font-semibold mb-3">🖱️ 双击即用 — Windows GUI</h3>
             <pre className="font-mono text-[12px] leading-[1.8] text-[var(--text-muted)] bg-[var(--bg-code)] rounded-md p-3 overflow-x-auto">
-{`cd dilipa-tool
-pip install -r requirements.txt
-pip install -e .
-dilipa --help`}
+{`1. 下载 dilipa.exe (GitHub Releases)
+2. 双击启动 → Dilipa 窗口弹出
+3. 点击「📂 打开 ELF 文件」
+   选一个 .elf 文件 (Linux 二进制)
+4. 点击「🔍 扫描危险函数」
+   查看危险调用表格 + 反汇编 + 伪 C
+5. 点击「💾 导出 JSON」
+   把报告带给网页工作台`}
             </pre>
           </div>
           <div className="u-panel p-5">
-            <h3 className="text-[14px] font-semibold mb-3">PyInstaller 打包（Windows 分发）</h3>
+            <h3 className="text-[14px] font-semibold mb-3">⌨️ 命令行模式 — 开发者</h3>
             <pre className="font-mono text-[12px] leading-[1.8] text-[var(--text-muted)] bg-[var(--bg-code)] rounded-md p-3 overflow-x-auto">
-{`pip install pyinstaller
+{`# 直接跑 exe 也能进 CLI
+dilipa.exe --cli analyze target.elf
+dilipa.exe --cli lift    target.elf -o ast.json
+dilipa.exe --cli patch   target.elf
+  --replace strcpy:strncpy --dry-run
+
+# 或者源码方式
 cd dilipa-tool
-# Windows: 双击 build_windows.bat
-# 或手动:
-pyinstaller --onefile --name dilipa \\
-  dilipa/__main__.py \\
-  --collect-all capstone --collect-all elftools
-# → dist/dilipa.exe`}
+pip install -e .
+python -m dilipa analyze target.elf`}
             </pre>
           </div>
         </div>
         <p className="mt-4 text-[12.5px] text-[var(--text-muted)] leading-relaxed">
-          Dilipa CLI 是纯 Python 工具，不依赖 Ghidra。用 pyelftools 解析 ELF、capstone 反汇编，
-          输出 JSON 可以直接喂给下方的网页工作台做可视化。
+          Dilipa 是 <strong>ELF 二进制分析器</strong>（Linux / Unix / Android native 二进制格式），
+          不依赖 Kali / WSL / gcc —— Windows 用户装完 Python 依赖就能跑。
+          PE 格式 (.exe / .dll) 暂未支持。
         </p>
       </section>
 
@@ -166,7 +173,7 @@ pyinstaller --onefile --name dilipa \\
         </div>
         <DilipaWorkbench />
         <p className="mt-4 font-mono text-[10.5px] text-[var(--text-soft)] text-center">
-          工作台使用预置样例数据. 想跑真实 ELF? 在 Kali 上用 Dilipa CLI 分析 → 生成 JSON → 带回来.
+          工作台使用预置样例数据. 想跑真实 ELF? dilipa.exe 打开 ELF → 导出 JSON → 在这里导入.
         </p>
       </section>
 
@@ -220,9 +227,11 @@ pyinstaller --onefile --name dilipa \\
       <section className="border-t border-[var(--border)]">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-12 md:py-14 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-1.5">下载 Dilipa 跑真实 ELF</h2>
+            <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-1.5">
+              下载 dilipa.exe，Windows 上双击即用
+            </h2>
             <p className="text-[13px] text-[var(--text-muted)]">
-              CLI 用 pyelftools + capstone 扫描真实二进制, 输出 JSON 带到网页工作台可视化.
+              内置 tkinter GUI，打开 ELF → 扫描危险函数 → 查看反汇编 → 导出 JSON。
             </p>
           </div>
           <div className="flex flex-wrap gap-2.5 flex-shrink-0">
