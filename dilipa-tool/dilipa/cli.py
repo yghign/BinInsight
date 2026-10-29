@@ -37,12 +37,18 @@ def _fix_windows_encoding() -> None:
         pass  # 忽略: 在重定向 / 非控制台环境会失败
 
     # 2) 重配置 Python 的 stdout/stderr 为 UTF-8
+    #    reconfigure 是 TextIOBase 的方法，但 pyright 的 TextIO stub 里没声明
+    #    — 用 getattr 绕过去保证类型安全
     try:
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        reconf = getattr(sys.stdout, "reconfigure", None)
+        if reconf is not None:
+            reconf(encoding="utf-8", errors="replace")
     except Exception:
         pass
     try:
-        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        reconf = getattr(sys.stderr, "reconfigure", None)
+        if reconf is not None:
+            reconf(encoding="utf-8", errors="replace")
     except Exception:
         pass
 
@@ -253,7 +259,12 @@ def _read_text_section(elf_path: str, info: ElfInfo) -> bytes:
     with open(elf_path, "rb") as f:
         elf = ELFFile(f)
         sec = elf.get_section_by_name(".text")
-        return sec.data()
+        if sec is None:
+            raise RuntimeError(".text section not found")
+        data = sec.data()
+        if data is None:
+            raise RuntimeError(".text section has no data")
+        return data
 
 
 def _make_pseudo_c(call_sites, info: ElfInfo) -> str:

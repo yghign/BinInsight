@@ -181,8 +181,14 @@ class DilipaApp(tk.Tk):
         threading.Thread(target=self._run_analyze, daemon=True).start()
 
     def _run_analyze(self) -> None:
+        # assert non-None — 仅在 _on_analyze 检查过后才通过线程调用进来
+        elf_path = self.current_elf_path
+        if elf_path is None:
+            self.after(0, lambda: self._status_var.set("请先选择 ELF 文件"))
+            return
+
         try:
-            info = parse_elf(self.current_elf_path)
+            info = parse_elf(elf_path)
         except Exception as e:
             self.after(0, lambda: messagebox.showerror("解析失败", str(e)))
             self.after(0, lambda: self._status_var.set(f"解析失败: {e}"))
@@ -190,12 +196,12 @@ class DilipaApp(tk.Tk):
 
         if info.text_offset is None:
             self.after(0, lambda: messagebox.showwarning(
-                "无 .text 段", f"{Path(self.current_elf_path).name} 不含 .text 段, 无法反汇编"
+                "无 .text 段", f"{Path(elf_path).name} 不含 .text 段, 无法反汇编"
             ))
             return
 
         try:
-            code = _read_text_section(self.current_elf_path, info)
+            code = _read_text_section(elf_path, info)
             result = disassemble(code, info.text_vaddr or 0, info.arch, info.bits)
         except Exception as e:
             self.after(0, lambda: messagebox.showerror("反汇编失败", str(e)))

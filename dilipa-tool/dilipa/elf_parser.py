@@ -5,12 +5,6 @@ from pathlib import Path
 from typing import Optional
 
 from elftools.elf.elffile import ELFFile
-# 仅在可用时 import, 缺失则回退
-try:
-    from elftools.elf.descriptions import describe_e_type
-except ImportError:
-    def describe_e_type(t):
-        return str(t)
 
 
 @dataclass
@@ -83,9 +77,10 @@ def parse_elf(path: str | Path) -> ElfInfo:
                 sec = elf.get_section_by_name(sec_name)
             except KeyError:
                 continue
-            if sec is None or not sec["sh_type"] == "SHT_SYMTAB":
+            if sec is None or sec["sh_type"] != "SHT_SYMTAB":
                 continue
-            for sym in sec.iter_symbols():
+            # iter_symbols 是 pyelftools Section 的真实方法, 类型 stub 没声明 → 忽略
+            for sym in sec.iter_symbols():  # type: ignore[attr-defined]
                 name = sym.name
                 if name:
                     info.symbols[name] = int(sym["st_value"])
