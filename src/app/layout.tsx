@@ -43,6 +43,18 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col bg-bg">
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var z = localStorage.getItem('bininsight-font-scale') || '1';
+                  document.body.style.zoom = z;
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
         <TermsProvider>
           <Navbar />
           <main className="flex-1">{children}</main>

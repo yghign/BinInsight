@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { cases } from '@/data/cases';
 import { getBeginnerSandboxes, getAdvancedSandboxes, difficultyTone } from '@/data/sandbox';
+import PathPreview from '@/components/PathPreview';
 
 export const metadata = {
   title: '案例展示 | BinInsight',
@@ -85,25 +86,35 @@ export default function CasesPage() {
 
   return (
     <div>
-      {/* Header */}
+      {/* Header —— 左对齐 7/5 双栏 */}
       <div className="border-b border-[var(--border)]">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-8 pb-10">
-          <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)] mb-5">
-            <Link href="/" className="hover:text-[var(--text)] transition-colors">首页</Link>
-            <span className="text-[var(--border-soft)]">/</span>
-            <span className="text-[var(--text-muted)]">案例展示</span>
+        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 py-10 md:py-14">
+          <div className="grid gap-8 md:grid-cols-12 md:gap-12">
+            {/* 左 7 —— 标题区 */}
+            <div className="md:col-span-7">
+              <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)] mb-5">
+                <Link href="/" className="hover:text-[var(--text)] transition-colors">首页</Link>
+                <span className="text-[var(--border-soft)]">/</span>
+                <span className="text-[var(--text-muted)]">案例展示</span>
+              </div>
+              <p className="u-eyebrow mb-2">Interactive Sandbox</p>
+              <h1 className="u-display text-3xl md:text-[42px] mb-3">沙箱实战</h1>
+              <p className="text-[15px] text-[var(--text-muted)] max-w-xl leading-relaxed">
+                无需下载任何文件、无需配置虚拟机 —— 打开浏览器就能完成一次完整的漏洞分析：
+                识别程序 → 寻找线索 → 定位漏洞 → 验证利用 → 决策修复。
+                每个选项都有解释，点错也能学到东西。
+              </p>
+            </div>
+
+            {/* 右 5 —— 漏洞路径预览 */}
+            <aside className="md:col-span-5 md:border-l md:border-[var(--border)] md:pl-10">
+              <PathPreview />
+            </aside>
           </div>
-          <p className="u-eyebrow mb-2">Interactive Sandbox</p>
-          <h1 className="u-display text-3xl md:text-[40px] mb-3">沙箱实战</h1>
-          <p className="text-[15px] text-[var(--text-muted)] max-w-2xl leading-relaxed">
-            无需下载任何文件、无需配置虚拟机 —— 打开浏览器就能完成一次完整的漏洞分析：
-            识别程序 → 寻找线索 → 定位漏洞 → 验证利用 → 决策修复。
-            每个选项都有解释，点错也能学到东西。
-          </p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-14 md:py-20 space-y-16">
+      <div className="max-w-[1280px] mx-auto px-5 sm:px-8 py-14 md:py-20 space-y-16">
         {/* ── 新手模块区 ── */}
         <section>
           <div className="flex items-baseline justify-between gap-4 flex-wrap mb-1">

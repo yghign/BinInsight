@@ -188,7 +188,7 @@ export default function MutagenPage() {
     <div>
       {/* Hero */}
       <section className="border-b border-[var(--border)]">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-8 pb-12">
+        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 pt-8 pb-12">
           <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)] mb-8">
             <Link href="/" className="hover:text-[var(--text)] transition-colors">首页</Link>
             <span className="text-[var(--border-soft)]">/</span>
@@ -233,7 +233,7 @@ export default function MutagenPage() {
       </section>
 
       {/* 工具介绍 */}
-      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-16 md:py-20">
+      <section className="max-w-[1280px] mx-auto px-5 sm:px-8 py-16 md:py-20">
         <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-start">
           <div>
             <p className="u-eyebrow mb-4">Overview</p>
@@ -256,7 +256,7 @@ export default function MutagenPage() {
 
       {/* 能力与边界 */}
       <section className="border-y border-[var(--border)] bg-[var(--bg-soft)]">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-16 md:py-20">
+        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 py-16 md:py-20">
           <p className="u-eyebrow mb-4">Scope</p>
           <h2 className="u-display text-2xl md:text-3xl mb-10">能力与边界</h2>
 
@@ -325,7 +325,7 @@ export default function MutagenPage() {
       </section>
 
       {/* 环境要求 */}
-      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-16 md:py-20">
+      <section className="max-w-[1280px] mx-auto px-5 sm:px-8 py-16 md:py-20">
         <p className="u-eyebrow mb-4">Environment</p>
         <h2 className="u-display text-2xl md:text-3xl mb-8">环境要求</h2>
         <div className="border-t border-[var(--border)]">
@@ -427,7 +427,7 @@ export default function MutagenPage() {
 
       {/* CTA */}
       <section className="border-t border-[var(--border)]">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-14 md:py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 py-14 md:py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <h2 className="u-display text-2xl md:text-3xl mb-2">开始使用 Mutagen</h2>
             <p className="text-sm text-[var(--text-muted)]">

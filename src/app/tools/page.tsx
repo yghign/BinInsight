@@ -44,7 +44,7 @@ export default function ToolsPage() {
     <div>
       {/* Header */}
       <div className="border-b border-[var(--border)]">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-8 pb-10">
+        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 pt-8 pb-10">
           <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)] mb-5">
             <Link href="/" className="hover:text-[var(--text)] transition-colors">首页</Link>
             <span className="text-[var(--border-soft)]">/</span>
@@ -59,7 +59,7 @@ export default function ToolsPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 py-14 md:py-20">
+      <div className="max-w-[1280px] mx-auto px-5 sm:px-8 py-14 md:py-20">
         {/* 工具列表：编辑式大行 */}
         <div className="border-t border-[var(--border)]">
           {tools.map((tool) => (

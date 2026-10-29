@@ -59,7 +59,7 @@ export default function DilipaPage() {
     <div>
       {/* Hero */}
       <section className="border-b border-[var(--border)]">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-8 pb-10">
+        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 pt-8 pb-10">
           <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)] mb-6">
             <Link href="/" className="hover:text-[var(--text)] transition-colors">首页</Link>
             <span className="text-[var(--border-soft)]">/</span>
@@ -113,7 +113,7 @@ export default function DilipaPage() {
       </section>
 
       {/* 使用指南 */}
-      <section id="how-to-use" className="max-w-5xl mx-auto px-5 sm:px-8 py-8 md:py-10 scroll-mt-24">
+      <section id="how-to-use" className="max-w-[1280px] mx-auto px-5 sm:px-8 py-8 md:py-10 scroll-mt-24">
         <p className="u-eyebrow mb-2">How to Use</p>
         <div className="grid md:grid-cols-2 gap-4 md:gap-6">
           <div className="u-panel p-5">
@@ -179,7 +179,7 @@ python -m dilipa analyze target.elf`}
 
       {/* Pipeline 原理 */}
       <section className="border-t border-[var(--border)] bg-[var(--bg-soft)]">
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 py-14 md:py-16">
+        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 py-14 md:py-16">
           <p className="u-eyebrow mb-3">Pipeline</p>
           <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-8">工作原理 · 五步流水线</h2>
           <div className="space-y-0 border-t border-[var(--border)]">
@@ -225,7 +225,7 @@ python -m dilipa analyze target.elf`}
 
       {/* CTA */}
       <section className="border-t border-[var(--border)]">
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-12 md:py-14 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 py-12 md:py-14 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <h2 className="text-xl md:text-2xl font-semibold tracking-tight mb-1.5">
               下载 dilipa.exe，Windows 上双击即用
