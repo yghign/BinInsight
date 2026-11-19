@@ -1,0 +1,360 @@
+classDiagram
+    direction TB
+
+    %% ══════════════════════════════════════════════════════════
+    %% 一、数据层（src/data/*，纯常量与类型，无副作用）
+    %% ══════════════════════════════════════════════════════════
+    class LevelId {
+        <<enumeration>>
+        l0
+        l1
+        l2
+        l3
+        l4
+        l5
+        l6
+        l7
+    }
+
+    class SourceState {
+        <<enumeration>>
+        real
+        demo
+        planned
+    }
+
+    class SelfCheck {
+        +string question
+        +CheckOption[] options
+    }
+
+    class CheckOption {
+        +string label
+        +boolean correct
+        +string explain
+    }
+
+    class LessonLevel {
+        +LevelId id
+        +number index
+        +string title
+        +string newConcept
+        +string plainDefinition
+        +string[] allowedTerms
+        +string route
+        +LevelId next
+        +LevelId requires
+        +SelfCheck selfCheck
+        +string[] assets
+    }
+
+    class GlossEntry {
+        +string id
+        +string term
+        +string plain
+        +LevelId level
+        +string[] aliases
+        +string anchor
+        +string detail
+    }
+
+    class DilipaCallSite {
+        +string address
+        +string target_plt
+        +string target_func
+        +boolean is_dangerous
+        +string safe_alt
+        +string cwe
+    }
+
+    class DilipaReport {
+        +string tool
+        +string version
+        +string path
+        +string arch
+        +number bits
+        +string endian
+        +string e_type
+        +string entry
+        +string[] sections
+        +string cmd
+        +DilipaCallSite[] calls
+        +DilipaCallSite[] dangerous
+        +number instruction_count
+        +unknown[] changes
+        +string note
+    }
+
+    class NormalizedReport {
+        +boolean ok
+        +DilipaReport report
+        +string[] warnings
+        +string state
+    }
+
+    class DemoStep {
+        +string cmd
+        +string output
+        +string rip
+        +string note
+    }
+
+    class MitigationRow {
+        +string name
+        +boolean defaultOn
+        +string desc
+        +string effectOff
+        +string effectOn
+    }
+
+    class FixOption {
+        +string code
+        +boolean correct
+        +string label
+    }
+
+    class SandboxStage {
+        +string id
+        +string mission
+        +string material
+        +string question
+        +SandboxOption[] options
+        +string guideWhy
+        +string guideHow
+        +string verdict
+    }
+
+    class SandboxCase {
+        +string id
+        +string difficulty
+        +SandboxStage[] stages
+        +string[] protection
+    }
+
+    %% ══════════════════════════════════════════════════════════
+    %% 二、契约层（src/lib/*，纯函数，无 UI）
+    %% ══════════════════════════════════════════════════════════
+    class ReportNormalizer {
+        <<service>>
+        +normalizeReport(raw, state) NormalizedReport
+        -coerceCalls(value) DilipaCallSite[]
+        -recomputeDangerous(calls) DilipaCallSite[]
+        -warn(message) void
+    }
+
+    class LessonRouter {
+        <<service>>
+        +levelByRoute(route) LessonLevel
+        +nextLevel(id) LevelId
+        +isUnlocked(id, done) boolean
+        +countPassed(checks) number
+    }
+
+    class ProgressStore {
+        <<service>>
+        +KEY_LESSON : string
+        +KEY_REF : string
+        +readLessonProgress() Record
+        +writeLessonProgress(p) void
+        +onStorageSync(cb) void
+    }
+
+    class SourceStateMap {
+        <<service>>
+        +labelOf(state) string
+        +toneOf(state) string
+    }
+
+    %% ══════════════════════════════════════════════════════════
+    %% 三、组件层（src/components/*，'use client'）
+    %% ══════════════════════════════════════════════════════════
+    class GlossaryProvider {
+        <<component>>
+        +GlossaryContext ctx
+        +openTerm(id) void
+        +closeTerm() void
+        +useGlossary() Context
+    }
+
+    class TermButton {
+        <<component>>
+        +string termId
+        +ReactNode children
+        +onClick() void
+    }
+
+    class TermPopover {
+        <<component>>
+        +GlossEntry entry
+        +onClose() void
+        +goToGlossary() void
+    }
+
+    class SourceBadge {
+        <<component>>
+        +SourceState state
+        +string note
+        +render() ReactNode
+    }
+
+    class LessonShell {
+        <<component>>
+        +LessonLevel level
+        +Record progress
+        +ReactNode children
+        +renderSidebar() ReactNode
+        +renderFooter() ReactNode
+    }
+
+    class SelfCheckCard {
+        <<component>>
+        +SelfCheck check
+        +onPass() void
+        +retry() void
+    }
+
+    class L2CallSpotter {
+        <<component>>
+        +string[] asmLines
+        +onPick(lineIdx) void
+        +explainWrong(lineIdx) string
+    }
+
+    class L3PatchDiff {
+        <<component>>
+        +string original
+        +string patched
+        +computeStrDiff(o, p) DiffLine[]
+    }
+
+    class DemoTerminal {
+        <<component>>
+        +DemoStep[] steps
+        +number initialStep
+        +string sourceLabel
+        +autoRun() void
+        +reset() void
+    }
+
+    class DefenseSwitcher {
+        <<component>>
+        +MitigationRow[] mitigations
+        +string vulnCode
+        +FixOption[] fixOptions
+        +boolean single
+        +crashLog() string
+    }
+
+    class SandboxPlayer {
+        <<component>>
+        +SandboxCase caseData
+        +boolean guideMode
+        +submit(stageIdx, optIdx) void
+    }
+
+    class ReportImporter {
+        <<component>>
+        +onReport(r) void
+        +string sampleUrl
+        +readFile(file) void
+        +downloadSample() void
+    }
+
+    class ReportCompareView {
+        <<component>>
+        +DilipaReport report
+        +string[] warnings
+        +string state
+        +renderL2Calls() ReactNode
+        +renderL3Diff() ReactNode
+    }
+
+    class DilipaWorkbench {
+        <<component>>
+        +DilipaReport report
+        +SourceState sourceState
+        +renderSteps() ReactNode
+    }
+
+    class LearnLevelPage {
+        <<page>>
+        +generateStaticParams() Param[]
+        +dynamicParams : false
+        +render(level) ReactNode
+    }
+
+    %% ══════════════════════════════════════════════════════════
+    %% 四、关系（CLEARLY MARKED）
+    %% ══════════════════════════════════════════════════════════
+
+    %% 数据模型之间的组合 / 聚合
+    LessonLevel *-- SelfCheck : 每级 1 张自检卡
+    SelfCheck *-- CheckOption : 恰好 2 个选项
+    LessonLevel ..> LevelId : id / next / requires
+    DilipaReport o-- DilipaCallSite : calls[] 与 dangerous[]
+    NormalizedReport *-- DilipaReport : 归一化后持有
+    NormalizedReport ..> SourceState : state ∈ real|demo
+    SandboxCase *-- SandboxStage : 5 个阶段
+    SandboxStage *-- CheckOption : options 复用同结构
+
+    %% 契约层 → 数据层（单向依赖）
+    ReportNormalizer ..> DilipaReport : 读取并容错归一
+    ReportNormalizer ..> NormalizedReport : 产出
+    LessonRouter ..> LessonLevel : 查表 / 前进 / 解锁
+    ProgressStore ..> LessonLevel : 持久化完成状态
+    SourceStateMap ..> SourceState : 文案与样式映射
+
+    %% 页面 → 契约层 / 组件层
+    LearnLevelPage ..> LessonRouter : levelByRoute()
+    LearnLevelPage --> LessonShell : 组装骨架
+    LessonShell ..> ProgressStore : 读进度
+    LessonShell --> SelfCheckCard : 末尾自检
+    LessonShell ..> LessonRouter : nextLevel() 生成前进按钮
+    LessonShell --> SourceBadge : 统一标注
+
+    %% 各级交互组件
+    LessonShell --> L2CallSpotter : L2 挂载
+    LessonShell --> L3PatchDiff : L3 挂载
+    LessonShell --> DemoTerminal : L5 挂载（预录）
+    LessonShell --> DefenseSwitcher : L6 挂载（single=Canary）
+    LessonShell --> SandboxPlayer : L7 挂载（0 新概念）
+    DefenseSwitcher ..> MitigationRow : props
+    DefenseSwitcher ..> FixOption : props
+    DemoTerminal ..> DemoStep : props
+    SandboxPlayer ..> SandboxCase : props
+    L2CallSpotter ..> GlossEntry : 点术语 → openTerm()
+    L3PatchDiff ..> GlossEntry : 点术语 → openTerm()
+
+    %% 术语解释（Glossary*）与使用条款（Terms*）严格隔离
+    GlossaryProvider o-- GlossEntry : 索引唯一数据源 glossary.ts
+    GlossaryProvider --> TermPopover : 打开浮层
+    TermButton ..> GlossaryProvider : openTerm(id)
+    TermPopover ..> GlossEntry : 显示白话 + 级别 + 去速查表
+    note for GlossaryProvider "命名隔离：Glossary* / Term* = 术语解释<br/>TermsProvider / useTerms / TermsButton = 使用条款（保持不动）<br/>两者并列挂在 layout.tsx，互不嵌套依赖"
+
+    %% 三态标签唯一出口
+    SourceBadge ..> SourceStateMap : labelOf / toneOf
+    DemoTerminal ..> SourceBadge : 预录演示
+    DefenseSwitcher ..> SourceBadge : 模拟日志
+    DilipaWorkbench ..> SourceBadge : 工作台每屏
+    ReportCompareView ..> SourceBadge : 数据来源标注
+
+    %% 联动链路
+    ReportImporter ..> ReportNormalizer : normalizeReport(raw, 'real')
+    ReportImporter --> ReportCompareView : 传递 NormalizedReport
+    ReportCompareView ..> DilipaCallSite : 渲染 L2 逐条 call
+    ReportCompareView ..> L3PatchDiff : target_func → safe_alt 并排高亮
+    ReportImporter ..> DilipaReport : 内置 sample-report.json（state=demo）
+    DilipaWorkbench ..> DilipaReport : 可选 report prop（与联动共用渲染）
+
+    %% 自检脚本（构建期）
+    class HonestyChecker {
+        <<script>>
+        +scanForbiddenWords() Violation[]
+        +checkSourceBadgeCoverage() Violation[]
+        +checkGlossaryCoverage() Violation[]
+        +checkL8Isolation() Violation[]
+    }
+    HonestyChecker ..> LessonLevel : 校验 8 级与 next 不指向 L8
+    HonestyChecker ..> GlossEntry : 校验术语覆盖
+    HonestyChecker ..> SourceState : 校验三态标注

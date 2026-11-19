@@ -1,183 +1,204 @@
-"""生成一个最小 x86-64 ELF64, .text 段包含 3 条 call 指令供 Dilipa 测试.
+"""生成一个最小但结构正确的 x86-64 ELF, 供 Dilipa CLI 自测.
 
-这个脚本只为验证 Dilipa CLI 能跑通, 生成的 ELF 不是真正可执行的.
+替换 dilipa-tool/scripts/make_test_elf.py。
+
+与仓库原版的区别:
+  1. 真正写出 section headers (原版生成的样本没有 .text, dilipa analyze 直接报
+     "未找到 .text 段"), 这里 .text/.plt/.dynsym/.dynstr/.rela.plt 全部齐全;
+  2. 带上 .dynsym + .rela.plt, 使 call 目标地址能追溯到 strcpy/system 符号 ——
+     这是验证 "call 目标解析" 是否真正工作的前提;
+  3. 只用标准库, 不依赖 pyelftools / capstone, 系统 python 直接可跑。
+
+用法:
+    python make_test_elf.py                    # 输出到 ./samples/test-minimal.elf
+    python make_test_elf.py -o 自定义路径.elf
 """
+from __future__ import annotations
+
 import struct
+import sys
 from pathlib import Path
 
+# ── 假定布局 (ET_EXEC, 无 program header) ──────────────────────────
+TEXT_VADDR = 0x401000
+PLT_VADDR = 0x401020
+DYNSYM_VADDR = 0x402000
+DYNSTR_VADDR = 0x402100
+RELA_VADDR = 0x402200
+GOT_VADDR = 0x406000
 
-def make_elf64_with_calls(out_path: str) -> None:
-    # ---- .text 段内容 ----
-    # 0x00: mov rax, rdi    (48 89 f8)
-    # 0x03: mov rdi, 0x12345678  (48 c7 c7 78 56 34 12)  伪函数参数
-    # 0x0a: call +10        (e8 0a 00 00 00)
-    # 0x0f: mov rax, rdi
-    # 0x12: mov rdi, 0xdeadbeef
-    # 0x19: call +5          (e8 05 00 00 00)
-    # 0x1e: xor eax, eax
-    # 0x20: ret              (c3)
-    text = bytes([
-        0x48, 0x89, 0xf8,
-        0x48, 0xc7, 0xc7, 0x78, 0x56, 0x34, 0x12,
-        0xe8, 0x0a, 0x00, 0x00, 0x00,
-        0x48, 0x89, 0xf8,
-        0x48, 0xc7, 0xc7, 0xef, 0xbe, 0xad, 0xde,
-        0xe8, 0x05, 0x00, 0x00, 0x00,
-        0x31, 0xc0,
-        0xc3,
-    ])
+SHT_NULL = 0
+SHT_PROGBITS = 1
+SHT_STRTAB = 3
+SHT_RELA = 4
+SHT_DYNSYM = 11
 
-    # ---- ELF Header ----
-    e_ident = b'\x7fELF'       # magic
-    e_ident += b'\x02'          # 64-bit
-    e_ident += b'\x01'          # little endian
-    e_ident += b'\x01'          # version 1
-    e_ident += b'\x00'          # SysV ABI
-    e_ident += b'\x00' * 8      # padding
+SHF_WRITE = 0x1
+SHF_ALLOC = 0x2
+SHF_EXECINSTR = 0x4
 
+STB_GLOBAL = 1
+STT_FUNC = 2
+R_X86_64_JUMP_SLOT = 7
+
+
+def _align(n: int, a: int = 8) -> int:
+    return (n + a - 1) & ~(a - 1)
+
+
+def build_text() -> bytes:
+    """0x401000: mov rdi,0xdeadbeef ; call strcpy@plt ; call system@plt ; xor eax,eax ; ret"""
+    buf = bytearray()
+
+    # mov rdi, 0xdeadbeef
+    buf += bytes([0x48, 0xC7, 0xC7]) + struct.pack("<I", 0xDEADBEEF)
+
+    # call PLT[0] (strcpy)  —— 下一条指令地址 0x40100c
+    call_addr = TEXT_VADDR + len(buf)
+    disp = PLT_VADDR - (call_addr + 5)
+    buf += bytes([0xE8]) + struct.pack("<i", disp)
+
+    # call PLT[1] (system)
+    call_addr = TEXT_VADDR + len(buf)
+    disp = (PLT_VADDR + 16) - (call_addr + 5)
+    buf += bytes([0xE8]) + struct.pack("<i", disp)
+
+    buf += bytes([0x31, 0xC0])   # xor eax, eax
+    buf += bytes([0xC3])         # ret
+    return bytes(buf)
+
+
+def build_plt() -> bytes:
+    """两个 16 字节的 PLT 条目: jmp qword ptr [rip+disp] + 占位填充."""
+    out = bytearray()
+    for i in range(2):
+        entry_addr = PLT_VADDR + i * 16
+        disp = (GOT_VADDR + i * 8) - (entry_addr + 6)
+        entry = bytearray()
+        entry += bytes([0xFF, 0x25]) + struct.pack("<i", disp)  # jmp [rip+disp]
+        entry += bytes([0x68]) + struct.pack("<I", i)           # push <reloc index>
+        entry += bytes([0xE9, 0x00, 0x00, 0x00, 0x00])          # jmp plt0
+        entry += b"\x00" * (16 - len(entry))
+        out += entry
+    return bytes(out)
+
+
+def build_dynstr() -> bytes:
+    # 偏移: 0 -> "", 1 -> "strcpy", 8 -> "system"
+    return b"\x00strcpy\x00system\x00"
+
+
+def build_dynsym(dynstr_off: dict[str, int]) -> bytes:
+    def sym(name_off: int, info: int) -> bytes:
+        return struct.pack("<IBBHQQ", name_off, info, 0, 0, 0, 0)
+
+    out = sym(0, 0)                                              # 空符号, 必须第一个
+    out += sym(dynstr_off["strcpy"], (STB_GLOBAL << 4) | STT_FUNC)
+    out += sym(dynstr_off["system"], (STB_GLOBAL << 4) | STT_FUNC)
+    return out
+
+
+def build_rela() -> bytes:
+    out = b""
+    for i in range(2):
+        r_offset = GOT_VADDR + i * 8
+        r_info = ((i + 1) << 32) | R_X86_64_JUMP_SLOT
+        out += struct.pack("<QQq", r_offset, r_info, 0)
+    return out
+
+
+def build_elf(out_path: Path) -> None:
+    dynstr = build_dynstr()
+    dynstr_off = {"strcpy": dynstr.index(b"strcpy"), "system": dynstr.index(b"system")}
+
+    sec = {
+        "text": build_text(),
+        "plt": build_plt(),
+        "dynsym": build_dynsym(dynstr_off),
+        "dynstr": dynstr,
+        "rela": build_rela(),
+    }
+    shstr = b"\x00.text\x00.plt\x00.dynsym\x00.dynstr\x00.rela.plt\x00.shstrtab\x00"
+    name_off = {
+        ".text": shstr.index(b".text"),
+        ".plt": shstr.index(b".plt"),
+        ".dynsym": shstr.index(b".dynsym"),
+        ".dynstr": shstr.index(b".dynstr"),
+        ".rela.plt": shstr.index(b".rela.plt"),
+        ".shstrtab": shstr.index(b".shstrtab"),
+    }
+
+    # ── 计算文件偏移 ──
+    off = _align(64)
+    offsets: dict[str, int] = {}
+    for key in ("text", "plt", "dynsym", "dynstr", "rela"):
+        offsets[key] = off
+        off = _align(off + len(sec[key]))
+    offsets["shstr"] = off
+    off = _align(off + len(shstr))
+    shoff = _align(off)
+
+    # ── ELF header ──
+    e_ident = b"\x7fELF" + bytes([2, 1, 1, 0]) + b"\x00" * 8
     ehdr = e_ident
-    ehdr += struct.pack('<HH', 1, 0x3E)        # e_type=ET_REL, e_machine=EM_X86_64
-    ehdr += struct.pack('<I', 1)                # e_version
-    ehdr += struct.pack('<Q', 0)                # e_entry
-    ehdr += struct.pack('<Q', 0)                # e_phoff (no program headers)
-    ehdr += struct.pack('<Q', 0x40)             # e_shoff = 64 (right after ehdr)
-    ehdr += struct.pack('<I', 0)                # e_flags
-    ehdr += struct.pack('<HH', 64, 0)           # e_ehsize, e_phentsize=0
-    ehdr += struct.pack('<HH', 0, 0)            # e_phnum=0, e_shentsize=0
-    ehdr += struct.pack('<H', 0)                # e_shnum  — we'll patch later
-    ehdr += struct.pack('<H', 0)                # e_shstrndx — we'll patch later
+    ehdr += struct.pack("<HHI", 2, 0x3E, 1)          # ET_EXEC, x86-64, version
+    ehdr += struct.pack("<Q", TEXT_VADDR)            # e_entry
+    ehdr += struct.pack("<Q", 0)                     # e_phoff
+    ehdr += struct.pack("<Q", shoff)                 # e_shoff
+    ehdr += struct.pack("<I", 0)                     # e_flags
+    ehdr += struct.pack("<HHHHHH", 64, 0, 0, 64, 7, 6)  # ehsize, phentsize, phnum, shentsize, shnum, shstrndx
 
-    # 简单起见, 只写一个 .text 段 + 空的 section header
-    # 这里我们不写 section headers 也能让 pyelftools 解析 .text —
-    # pyelftools 会 fallback 到通过 e_shoff 找 section headers, 如果没有就从 LOAD segment 找.
-    # 对于我们的测试, 只要 .text 段能被找到就行.
+    def shdr(name: int, typ: int, flags: int, addr: int, offset: int,
+             size: int, link: int = 0, info: int = 0, align: int = 1,
+             entsize: int = 0) -> bytes:
+        return struct.pack("<IIQQQQIIQQ", name, typ, flags, addr, offset,
+                           size, link, info, align, entsize)
 
-    # 方案: 写一个最小合法 ELF, 不带 section headers, pyelftools 应该仍能解析
-    # 但 dilipa 代码要 .text 段, 我们需要确保它存在.
+    headers = shdr(0, SHT_NULL, 0, 0, 0, 0)
+    headers += shdr(name_off[".text"], SHT_PROGBITS, SHF_ALLOC | SHF_EXECINSTR, TEXT_VADDR,
+                    offsets["text"], len(sec["text"]), align=16)
+    headers += shdr(name_off[".plt"], SHT_PROGBITS, SHF_ALLOC | SHF_EXECINSTR, PLT_VADDR,
+                    offsets["plt"], len(sec["plt"]), align=16, entsize=16)
+    headers += shdr(name_off[".dynsym"], SHT_DYNSYM, SHF_ALLOC, DYNSYM_VADDR,
+                    offsets["dynsym"], len(sec["dynsym"]), link=4, info=1,
+                    align=8, entsize=24)
+    headers += shdr(name_off[".dynstr"], SHT_STRTAB, SHF_ALLOC, DYNSTR_VADDR,
+                    offsets["dynstr"], len(sec["dynstr"]), align=1)
+    headers += shdr(name_off[".rela.plt"], SHT_RELA, SHF_ALLOC, RELA_VADDR,
+                    offsets["rela"], len(sec["rela"]), link=3, info=2,
+                    align=8, entsize=24)
+    headers += shdr(name_off[".shstrtab"], SHT_STRTAB, 0, 0,
+                    offsets["shstr"], len(shstr), align=1)
 
-    # 更简单: 让 e_shoff=0 且 e_shnum=0, 但手动加一个 PT_LOAD 程序头把 text 映射
-    # 等等 — 这又需要 .text 段的 section header 元数据...
+    # ── 拼文件 ──
+    buf = bytearray()
+    buf += ehdr
+    for key in ("text", "plt", "dynsym", "dynstr", "rela"):
+        buf += b"\x00" * (offsets[key] - len(buf))
+        buf += sec[key]
+    buf += b"\x00" * (offsets["shstr"] - len(buf))
+    buf += shstr
+    buf += b"\x00" * (shoff - len(buf))
+    buf += headers
 
-    # 放弃复杂方案, 直接让 e_shoff 指向我们写的 section headers.
-    # 先写 ELF header + .text bytes, 再追加 section headers.
-
-    pass
-
-    # 让我换个更简单的办法: 用 pyelftools 自己生成!
-    from elftools.elf.elffile import ELFFile as _ELFFile
-    from elftools.elf.sections import Section as _Section
-    # 实际上 pyelftools 不支持直接创建 ELF, 只能解析
-
-    # 最终简化: 写一个带 section headers 的最小 ELF
-    return _make_minimal_elf_with_sections(text, out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_bytes(buf)
+    print(f"[+] 生成测试 ELF: {out_path}  ({len(buf)} bytes)")
+    print(f"    入口 0x{TEXT_VADDR:x}  .text {len(sec['text'])} 字节, "
+          f"2 个 call → strcpy@plt / system@plt")
 
 
-def _make_minimal_elf_with_sections(text: bytes, out_path: str) -> None:
-    """写一个最小 ELF64 文件, 包含 .text 段 + .plt stub + shstrtab.
-
-    目标: Dilipa CLI 能正确解析 .text 段, 并且里面的 call 指令
-          能被识别为 call PLT 符号 (通过 .plt 段 + 简单的 stub).
-    """
-
-    # 文件布局:
-    #   0x000: ELF header      (64 bytes)
-    #   0x040: .text 段内容    (28 bytes)
-    #   0x05C: .plt 段 stub    (64 bytes — 预留给 3 个 PLT 条目)
-    #   0x09C: Section headers (3 × 64 = 192 bytes)
-    #   0x15C: .shstrtab       (17 bytes)
-
-    ehdr_size = 64
-    plt_size = 64  # 3 个 PLT 条目 stub
-
-    text_offset = ehdr_size                     # 0x40
-    plt_offset  = ehdr_size + len(text)         # 0x5C
-    shoff       = ehdr_size + len(text) + plt_size  # 0x9C
-    shstrtab_offset = shoff + 3 * 64            # 0x09C + 192 = 0x15C
-
-    # ---- .text 段 ----
-    # 里面放 3 个 call PLT (call 地址直接指向 .plt 里的 stub).
-    # 为了让 Dilipa disassembler 识别, 我们用 call + 绝对地址
-    # (但 Capstone 反汇编出来会是 call 某个立即数, 不带 @plt).
-    # 更聪明的办法: 在 .plt 前面放一个 jmp, 然后 call 指令指向 .plt 起始.
-    # 但 disassembler 的 _parse_call_target 只认 "xxx@plt" 这种字符串.
-    # 所以这里我们不手搓 call PLT, 而是让 .text 段包含真实的 call 指令,
-    # Dilipa 先看能否解析, 不解析 call target 时至少能看 .text.
-
-    # ---- .plt 段 (stub, 不是真正的 PLT) ----
-    plt_stub = bytes([
-        # PLT[0]: strcpy@plt  — jmp *[got+0] 占位
-        0xff, 0x25, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        # PLT[1]: scanf@plt
-        0xff, 0x25, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        # PLT[2]: printf@plt
-        0xff, 0x25, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    ]) + b'\x00' * (plt_size - 48)  # 补到 64 字节
-
-    # ---- .shstrtab ----
-    # \x00 = ""  ,  1 = ".text\x00" (6 bytes → end at 7)  ,  7 = ".plt\x00" (5 bytes → end at 12)
-    # 12 = ".shstrtab\x00" (10 bytes → end at 22)
-    shstrtab = b'\x00.text\x00.plt\x00.shstrtab\x00'
-    assert len(shstrtab) == 22, f"shstrtab size {len(shstrtab)}"
-
-    # ---- ELF header ----
-    e_ident = b'\x7fELF\x02\x01\x01\x00' + b'\x00' * 8
-    ehdr = e_ident
-    ehdr += struct.pack('<HH', 1, 0x3E)        # ET_REL, EM_X86_64
-    ehdr += struct.pack('<I', 1)
-    ehdr += struct.pack('<Q', 0)               # entry
-    ehdr += struct.pack('<Q', 0)               # phoff=0
-    ehdr += struct.pack('<Q', shoff)           # shoff  ← section headers 起始
-    ehdr += struct.pack('<I', 0)                # flags
-    ehdr += struct.pack('<HH', 64, 0)           # ehsize=64, phentsize=0
-    ehdr += struct.pack('<HH', 0, 64)            # phnum=0, shentsize=64
-    ehdr += struct.pack('<HH', 3, 2)              # shnum=3, shstrndx=2
-
-    # ---- Section headers (3 个, 每个 64 bytes) ----
-    # sh_name 都是 .shstrtab 内的偏移
-    sh_text = struct.pack('<IIQQQQIIQQ',
-        1,              # sh_name  → ".text"
-        1,              # sh_type  → SHT_PROGBITS
-        6,              # sh_flags → SHF_ALLOC | SHF_EXECINSTR
-        0x1000,         # sh_addr  (虚拟地址, 对 ET_REL 不重要)
-        text_offset,    # sh_offset = 0x40
-        len(text),      # sh_size
-        0, 0, 16, 0)
-
-    sh_plt = struct.pack('<IIQQQQIIQQ',
-        7,              # sh_name  → ".plt"
-        1,              # sh_type  → SHT_PROGBITS
-        2,              # sh_flags → SHF_ALLOC
-        0x2000,
-        plt_offset,     # sh_offset = 0x5C
-        plt_size,       # sh_size   = 64
-        0, 0, 16, 0)
-
-    sh_shstr = struct.pack('<IIQQQQIIQQ',
-        12,             # sh_name  → ".shstrtab"
-        3,              # sh_type  → SHT_STRTAB
-        0,              # sh_flags
-        0,
-        shstrtab_offset,  # sh_offset 必须正确指向文件中 shstrtab 内容
-        len(shstrtab),
-        0, 0, 1, 0)
-
-    # ---- 写文件 ----
-    out = Path(out_path)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    with out.open('wb') as f:
-        f.write(ehdr)              # 0x000: 64 bytes
-        f.write(text)              # 0x040: .text 内容 (28 bytes)
-        f.write(plt_stub)          # 0x05C: .plt  stub (64 bytes)
-        f.write(sh_text)           # 0x09C: section header .text
-        f.write(sh_plt)            # 0x0DC: section header .plt
-        f.write(sh_shstr)          # 0x11C: section header .shstrtab
-        f.write(shstrtab)          # 0x15C: .shstrtab 内容
-
-    print(f"[✓] 生成测试 ELF: {out_path}  ({out.stat().st_size} bytes)")
+def main() -> int:
+    out = Path(__file__).parent / "samples" / "test-minimal.elf"
+    args = sys.argv[1:]
+    if args and args[0] in ("-o", "--out"):
+        if len(args) < 2:
+            print("用法: python make_test_elf.py [-o 输出路径]")
+            return 2
+        out = Path(args[1])
+    build_elf(out)
+    return 0
 
 
 if __name__ == "__main__":
-    make_elf64_with_calls(str(Path(__file__).parent / "samples" / "test-minimal.elf"))
+    raise SystemExit(main())

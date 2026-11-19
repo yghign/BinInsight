@@ -1,0 +1,137 @@
+sequenceDiagram
+    autonumber
+    actor S as 零基础同学 / 老师
+    actor U as 作者（课前准备）
+    participant NAV as Navbar / 首页
+    participant PAGE as LearnLevelPage / tools-dilipa 页面
+    participant SHELL as LessonShell
+    participant ROUTER as LessonRouter (lib/lesson)
+    participant STORE as ProgressStore (lib/storage)
+    participant GLOSS as GlossaryProvider
+    participant POP as TermPopover
+    participant BADGE as SourceBadge
+    participant SPOT as L2CallSpotter
+    participant DIFF as L3PatchDiff
+    participant TERM as DemoTerminal
+    participant SANDBOX as SandboxPlayer
+    participant CHECK as SelfCheckCard
+    participant IMP as ReportImporter
+    participant NORM as normalizeReport (lib)
+    participant VIEW as ReportCompareView
+    participant M as make_test_elf.py (标准库)
+    participant R as make_sample_report.py (独立交付/venv)
+    participant J as dilipa-report.json
+    participant SAMPLE as src/data/sample-report.json (内置)
+
+    %% ══════════════════════════════════════════════════════════
+    rect rgb(235, 244, 255)
+    Note over S,POP: 场景 1 · L2 点选 call → 术语解释浮层（P0-1 / P0-4）
+    S->>NAV: 点「开始学习（约 15 分钟）」
+    NAV->>PAGE: /learn/l0 → … → /learn/l2
+    PAGE->>ROUTER: levelByRoute('/learn/l2')
+    ROUTER-->>PAGE: LessonLevel{ newConcept:'call', allowedTerms:[输入→盒子, 溢出, strcpy], next:'l3' }
+    PAGE->>STORE: readLessonProgress()
+    STORE-->>PAGE: { l0:true, l1:true }
+    PAGE->>SHELL: props{ level, progress }
+    SHELL-->>S: 「本级只学 1 件事」+ 旧知识回链 + 8 级路径线
+    S->>SPOT: 点中汇编里 strcpy 那一行（或点错）
+    alt 点中危险行
+        SPOT-->>S: 「这是 call strcpy，它不检查长度」+ 高亮
+    else 点错（例如 mov 那行）
+        SPOT-->>S: 白话解释「这行只传参数，不是去调用函数」→ 允许重试
+    end
+    S->>SPOT: 点术语「call」ⓘ（虚线下划线）
+    SPOT->>GLOSS: openTerm('x86-call')
+    GLOSS->>GLOSS: glossary.ts 查表 O(1)（含 aliases）
+    GLOSS->>POP: GlossEntry{ plain, level:'l2', anchor }
+    POP-->>S: 「白话解释 + 属于第 2 级 + 去速查表」
+    Note over POP,GLOSS: 命名隔离：点「术语」绝不弹出 TermsDrawer（使用条款）
+    S->>CHECK: 答「我看懂了吗」2 选 1
+    alt 答对
+        CHECK->>STORE: onPass() → writeLessonProgress({ l2:true })
+        STORE-->>SHELL: 解锁 l3（nodeStatus: l3=active）
+    else 答错
+        CHECK-->>S: 白话解释 + 可重来（不扣分）
+    end
+    SHELL->>ROUTER: nextLevel('l2')
+    ROUTER-->>SHELL: 'l3'
+    SHELL-->>S: [下一级 →] 指向 l3，**不通向 L8**
+    end
+
+    %% ══════════════════════════════════════════════════════════
+    rect rgb(240, 250, 240)
+    Note over S,VIEW: 场景 2 · 导入 JSON → L2/L3 对照视图（P0-6 / P1-3 / 事实判断②）
+    S->>PAGE: 打开 /tools/dilipa，点「导入 dilipa-report.json」或「查看预置样例」
+    PAGE->>IMP: 传入 File 或 sample-report.json
+    IMP->>IMP: FileReader.readAsText → JSON.parse（无网络请求、断网可用）
+    IMP->>NORM: normalizeReport(raw, state='real'|'demo')
+    alt 非 JSON / 顶层非对象 / 超过 1MB
+        NORM-->>IMP: { ok:false, warnings:[原因] }
+        IMP-->>S: 错误卡片（含原因），不写 localStorage、不渲染
+    else 缺字段 / 空数组 / 旧版本
+        NORM-->>IMP: { ok:true, report, warnings:['缺少标识字段…','版本不一致…'] }
+        IMP->>VIEW: props{ report, warnings, state }
+        VIEW->>BADGE: 渲染「真实输出」或「演示样例」
+        BADGE-->>S: 标签 + 「数据来源：dilipa analyze」+ warnings 次要提示
+        VIEW->>VIEW: 左 L2：逐条 call（address / target_func / is_dangerous）<br/>右 L3：target_func → safe_alt 并排高亮（复用 computeStrDiff）
+        S->>VIEW: 点中 strcpy 那行
+        VIEW->>GLOSS: openTerm('strcpy')
+        GLOSS->>POP: 术语浮层
+        POP-->>S: 白话解释 + 属于第 2 级
+        Note over VIEW: 所有统计数字来自 report 对象，禁止硬编码
+    else 完全合法
+        NORM-->>IMP: { ok:true, report, warnings:[], state }
+        IMP->>VIEW: props{ report, warnings, state }
+        VIEW->>BADGE: 三态标签 + 数据来源
+        VIEW-->>S: L2/L3 对照视图（call 总数 / 危险数 / 指令数均来自 report）
+    end
+    S->>IMP: 点「下载样例 JSON」
+    IMP-->>S: sample-report.json（离线闭环：下载 → 再导入仍成立）
+    end
+
+    %% ══════════════════════════════════════════════════════════
+    rect rgb(255, 248, 235)
+    Note over S,CHECK: 场景 3 · L7 沙箱通关（末级 0 个新概念）
+    S->>PAGE: 进入 /learn/l7
+    PAGE->>ROUTER: levelByRoute('/learn/l7')
+    ROUTER-->>PAGE: LessonLevel{ newConcept:'（无）', next:null }
+    PAGE->>STORE: 检查 l0..l6 是否全部 done
+    alt 有未完成级
+        STORE-->>S: 回链到第一个未完成的级（不跳页）
+    else 全部完成
+        STORE-->>SHELL: 允许进入 L7
+        SHELL->>SANDBOX: 加载 difficulty='beginner' 的唯一案例，指导模式默认开
+        SANDBOX->>SANDBOX: 读 data/sandbox.ts 的 stages / options.explain / guideWhy / guideHow / verdict
+        loop 5 个阶段（选项只用 L0~L6 出现过的词）
+            S->>SANDBOX: 选择一项
+            alt 答对
+                SANDBOX-->>S: verdict「答对讲透」
+            else 答错
+                SANDBOX-->>S: explain「答错也讲清为什么不对」，不扣分、可重来
+            end
+        end
+        SANDBOX-->>SHELL: 通关
+        SHELL-->>S: 收尾卡「哪步用了 L2 的 call、哪步用了 L6 的 Canary」
+        SHELL->>CHECK: 8 道理解标志自检
+        CHECK->>STORE: writeLessonProgress({ l7:true })
+        STORE-->>S: 演示完成（全程无 L8 术语）
+    end
+    end
+
+    %% ══════════════════════════════════════════════════════════
+    rect rgb(248, 240, 255)
+    Note over U,SAMPLE: 场景 4 · 课前可复现数据链路（事实判断① / P0-6，不改仓库 .py）
+    U->>M: python make_test_elf.py -o test-minimal.elf（纯标准库）
+    M-->>U: 合法 ELF64（.text / .plt / .dynsym / .dynstr / .rela.plt 齐全）
+    U->>R: .venv/Scripts/python.exe make_sample_report.py test-minimal.elf -o dilipa-report.json
+    R->>R: ① .rela.plt(r_offset/r_info)+.dynsym → {plt_addr: func_name}（补符号解析环）
+    R->>R: ② capstone 线性反汇编 .text，把 call 后的数字地址映射回符号名（补 call 目标解析环）
+    R->>R: ③ DANGER_FUNCS(10 条) + safe_replace() + cwe_of() → is_dangerous/safe_alt/cwe
+    R->>R: ④ 组装与 cli.py analyze 完全同构的 JSON（_header 字段 + call_sites_to_dicts 字段）
+    R->>J: 写 dilipa-report.json（dangerous 非空，含 strcpy / system）
+    R-->>U: 打印摘要（call 总数 / 危险数 / 指令数）；空结果非零退出
+    U->>SAMPLE: 复制为网页内置样例，标 state='demo'
+    U->>U: verify_report.py 校验字段契约（纯标准库）
+    Note over R,SAMPLE: 仓库 dilipa-tool/**/*.py 保持 git diff 为空<br/>页面口径：由真实 ELF 样本预先生成，非现场运行，亦非仓库 CLI 原样跑出
+    S->>IMP: 演示现场也可导入刚跑出的 dilipa-report.json → 场景 2 渲染
+    end
