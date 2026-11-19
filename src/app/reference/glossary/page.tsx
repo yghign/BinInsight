@@ -1,8 +1,13 @@
 import Link from 'next/link';
+import SourceBadge from '@/components/SourceBadge';
+import { MAINLINE_GLOSSARY, EXTENSION_GLOSSARY } from '@/data/glossary';
 
 /**
- * 概念 glossary —— 工作台右侧 "RELATED" 链接跳转的锚点页。
- * 纯表格形式，每个概念一个 id 锚点。
+ * 概念 glossary —— 核心概念页（课外拓展区，不进入主线演示）。
+ *
+ * T11：改为读取 src/data/glossary.ts 这一唯一数据源，追加「主线 8 级基础术语」区，
+ * 锚点与术语浮层的 entry.anchor 一致（浮层「去核心概念看这一条」能准确落点）。
+ * 原有 A/B/C 三组进阶长文一字不删，保留供学有余力自行浏览。
  * 服务端组件。
  */
 
@@ -300,8 +305,8 @@ const allGroups = [groupA, groupB, groupC];
 const totalEntries = groupA.entries.length + groupB.entries.length + groupC.entries.length;
 
 export const metadata = {
-  title: '概念 Glossary · 逆向工作台',
-  description: `原理图解里提到的 ELF 格式 / x86 调用约定 / Canary / glibc 堆 / ROP 等 ${totalEntries} 个核心概念速查。`,
+  title: '核心概念 | BinInsight',
+  description: `核心概念：${MAINLINE_GLOSSARY.length} 条基础术语（来自 src/data/glossary.ts）与 ${totalEntries} 条进阶概念长文。`,
 };
 
 export default function GlossaryPage() {
@@ -310,18 +315,54 @@ export default function GlossaryPage() {
       <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)] mb-5">
         <Link href="/" className="hover:text-[var(--text)]">首页</Link>
         <span>/</span>
-        <Link href="/reference" className="hover:text-[var(--text)]">逆向工作台</Link>
+        <Link href="/reference" className="hover:text-[var(--text)]">深度工作台</Link>
         <span>/</span>
         <span className="text-[var(--text-muted)]">Glossary</span>
       </div>
 
-      <p className="u-eyebrow mb-2">GLOSSARY</p>
-      <h1 className="u-display text-2xl md:text-[32px] mb-3">核心概念速查</h1>
-      <p className="text-[14.5px] text-[var(--text-muted)] leading-relaxed mb-10 max-w-xl">
-        学习路径里反复提到的底层概念，单独列一张速查表。
-        分三组逻辑递进：ELF 格式 → 汇编调用 → 防护利用。共 {totalEntries} 个条目。
+      <p className="u-eyebrow mb-2">GLOSSARY · 核心概念</p>
+      <div className="flex items-center gap-2.5 flex-wrap mb-3">
+        <h1 className="u-display text-2xl md:text-[32px]">核心概念</h1>
+        <SourceBadge state="planned" />
+      </div>
+      <p className="text-[14.5px] text-[var(--text-muted)] leading-relaxed mb-6 max-w-xl">
+        第一部分是基础术语的白话讲解，
+        与页面上的术语浮层来自同一份数据（<code className="inline">src/data/glossary.ts</code>）；
+        第二部分保留 {totalEntries} 条进阶长文，供学有余力自行浏览。
       </p>
 
+      {/* 主线 8 级基础术语：唯一数据源 src/data/glossary.ts，锚点与术语浮层 entry.anchor 一致 */}
+      <section className="u-panel p-5 md:p-6 mb-12" aria-labelledby="mainline-glossary-title">
+        <div className="flex items-center gap-2.5 flex-wrap mb-2">
+          <h2 id="mainline-glossary-title" className="text-lg font-semibold tracking-tight">
+            基础术语（{MAINLINE_GLOSSARY.length} 条）
+          </h2>
+          <SourceBadge state="demo" />
+        </div>
+        <p className="text-[13px] text-[var(--text-muted)] leading-relaxed mb-5">
+          每条只给一句白话解释，先讲意思再给术语名。这里的 id 与术语浮层「去核心概念看这一条」的锚点一致，
+          因此主线任意一处点开术语，都能一次点击落到下面的对应条目。
+        </p>
+        <dl className="divide-y divide-[var(--border)] border border-[var(--border)] rounded-lg overflow-hidden">
+          {MAINLINE_GLOSSARY.map((entry) => (
+            <div key={entry.id} id={entry.id} className="scroll-mt-24 px-5 py-4">
+              <dt className="flex items-center gap-2.5 flex-wrap mb-1.5">
+                <strong className="font-mono text-[13px] text-[var(--text)]">{entry.term}</strong>
+                <span className="u-tag">{entry.level}</span>
+              </dt>
+              <dd className="text-[13.5px] text-[var(--text-muted)] leading-relaxed">{entry.plain}</dd>
+              {entry.detail && (
+                <dd className="mt-1.5 text-[12px] text-[var(--text-soft)] leading-relaxed">{entry.detail}</dd>
+              )}
+            </div>
+          ))}
+        </dl>
+        <p className="mt-4 font-mono text-[11px] text-[var(--text-soft)] leading-relaxed">
+          另有 {EXTENSION_GLOSSARY.length} 条拓展词条（ELF、AST Diff、Trampoline / code cave 等）收录在同一份数据源里。
+        </p>
+      </section>
+
+      <p className="u-eyebrow mb-4">ADVANCED · 进阶长文</p>
       <div className="space-y-12">
         {allGroups.map((group) => (
           <section key={group.title}>

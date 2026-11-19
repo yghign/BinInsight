@@ -1,31 +1,33 @@
 import Link from 'next/link';
 import { cases } from '@/data/cases';
+import { vulnPath } from '@/data/reference';
 import { getBeginnerSandboxes, getAdvancedSandboxes, difficultyTone } from '@/data/sandbox';
 import PathPreview from '@/components/PathPreview';
 
 export const metadata = {
-  title: '案例展示 | BinInsight',
-  description: '在线沙箱直接开练：无需下载，浏览器里完成识别、分析、利用与修复全流程。新手区跟练，进阶区低中高难度自主闯关。',
+  title: '动手实践 | BinInsight',
+  description:
+    '浏览器里的动手实践：交互沙箱与深度工作台，走完完整的漏洞分析与利用验证。均为预置演示样例。',
 };
 
 const tips = [
   {
-    label: '先学理论',
-    desc: '先完成教学引导层的四步学习，掌握基础概念后再进沙箱，每一步会更有感觉。',
+    label: '先走主线',
+    desc: '先走完 8 级主线，再来这里练习。',
     href: '/learn',
-    linkText: '进入学习路径',
+    linkText: '进入 8 级主线',
   },
   {
     label: '大胆点错',
-    desc: '沙箱里每个选项——包括错误选项——都配有解释。点错不扣分，反而是最快的学习方式。',
-    href: '/learn/step2',
-    linkText: '预习危险函数',
+    desc: '沙箱里每个选项——包括错误选项——都配有解释。',
+    href: '/learn/l2',
+    linkText: '复习 L2',
   },
   {
     label: '对照修复',
-    desc: '通关后读一遍防护建议，理解每条建议"拦的是哪一步"，你就同时掌握了攻与防。',
-    href: '/learn/step4',
-    linkText: '复习防护策略',
+    desc: '通关后读一遍防护建议。',
+    href: '/learn/l3',
+    linkText: '复习 L3',
   },
 ];
 
@@ -62,6 +64,11 @@ function SandboxCard({
       <p className="text-[13px] md:text-[13.5px] text-[var(--text-muted)] leading-relaxed mb-4">
         {sb.brief}
       </p>
+      {featured && sb.id === 'sb-format-string' && (
+        <p className="text-[11.5px] text-[var(--text-soft)] leading-relaxed mb-4">
+          打完这关可以去进阶区看看 UAF 和 ROP —— 看不懂很正常，那是主线之外的拓展。
+        </p>
+      )}
       <div className="mt-auto flex items-center justify-between gap-3">
         <span
           className={
@@ -95,15 +102,20 @@ export default function CasesPage() {
               <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)] mb-5">
                 <Link href="/" className="hover:text-[var(--text)] transition-colors">首页</Link>
                 <span className="text-[var(--border-soft)]">/</span>
-                <span className="text-[var(--text-muted)]">案例展示</span>
+                <Link href="/library" className="hover:text-[var(--text)] transition-colors">漏洞手册</Link>
+                <span className="text-[var(--border-soft)]">/</span>
+                <span className="text-[var(--text-muted)]">动手实践</span>
               </div>
-              <p className="u-eyebrow mb-2">Interactive Sandbox</p>
-              <h1 className="u-display text-3xl md:text-[42px] mb-3">沙箱实战</h1>
+              <p className="u-eyebrow mb-2">Practice</p>
+              <h1 className="u-display text-3xl md:text-[42px] mb-3">动手实践</h1>
               <p className="text-[15px] text-[var(--text-muted)] max-w-xl leading-relaxed">
-                无需下载任何文件、无需配置虚拟机 —— 打开浏览器就能完成一次完整的漏洞分析：
-                识别程序 → 寻找线索 → 定位漏洞 → 验证利用 → 决策修复。
-                每个选项都有解释，点错也能学到东西。
+                在浏览器里走完一次完整的漏洞分析与利用验证，每个选项都有解释。
               </p>
+              <div className="mt-5">
+                <Link href="/library" className="u-btn u-btn-ghost">
+                  <span className="font-mono" aria-hidden="true">←</span> 返回漏洞手册
+                </Link>
+              </div>
             </div>
 
             {/* 右 5 —— 漏洞路径预览 */}
@@ -121,8 +133,7 @@ export default function CasesPage() {
             <p className="u-eyebrow">Beginner Zone — 新手模块区</p>
           </div>
           <p className="text-[13.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl mb-6">
-            第一次接触二进制安全？从这里开始。默认开启<strong className="text-[var(--text)]">指导模式</strong>，
-            每一步都会告诉你「做什么、为什么这么做、这份材料该怎么看」—— 跟着走完就有完整方法论。
+            两个交互沙箱，跟着提示走完一次完整的漏洞分析。默认开指导模式，点错也有解释；材料都是预置演示样例。
           </p>
           {beginnerSandboxes.map((sb) => (
             <SandboxCard key={sb.id} sb={sb} featured />
@@ -135,10 +146,9 @@ export default function CasesPage() {
             <p className="u-eyebrow">Advanced Zone — 进阶模块区</p>
           </div>
           <p className="text-[13.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl mb-6">
-            默认关闭指导、自主完成分析。卡住时随时点「查看思路提示」；
-            难度从低到高依次是：格式化字符串 → UAF 虚表劫持 → <code className="inline">{'NX'}</code><span className="text-[var(--text-muted)] font-normal">（执行禁止位）</span> 下的 <code className="inline">{'ROP'}</code><span className="text-[var(--text-muted)] font-normal">（面向返回编程）</span> 对抗。
+            两个进阶交互沙箱，默认关掉指导模式、由你自主分析，卡住时随时点「查看思路提示」。
           </p>
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             {advancedSandboxes.map((sb) => (
               <SandboxCard key={sb.id} sb={sb} />
             ))}
@@ -177,14 +187,42 @@ export default function CasesPage() {
           </div>
         </section>
 
+        {/* ── 深度工作台（四个漏洞的四段式剖析） ── */}
+        <section>
+          <div className="flex items-baseline justify-between gap-4 flex-wrap mb-1">
+            <p className="u-eyebrow">Workbench — 深度工作台</p>
+          </div>
+          <p className="text-[13.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl mb-6">
+            四个漏洞的四段式深度剖析：原理 → 演示 → 动手 → 防御视角。供学有余力深入。
+          </p>
+          <div className="grid md:grid-cols-2 gap-4">
+            {vulnPath.map((node) => (
+              <Link
+                key={node.slug}
+                href={`/reference/${node.slug}`}
+                className="group u-panel u-panel-hover block p-5"
+              >
+                <h3 className="text-[16px] font-semibold tracking-tight mb-1.5 group-hover:text-[var(--brand-500)] transition-colors">
+                  {node.title}
+                </h3>
+                <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">{node.subtitle}</p>
+                <div className="mt-3 inline-flex items-center gap-1 text-[12.5px] font-medium text-[var(--brand-500)]">
+                  打开工作台 <span className="font-mono" aria-hidden="true">→</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
         {/* ── 本地深度案例（可选进阶） ── */}
         <section>
           <div className="flex items-baseline justify-between gap-4 flex-wrap mb-1">
             <p className="u-eyebrow">Deep Dive — 本地深度案例</p>
           </div>
           <p className="text-[13.5px] text-[var(--text-muted)] leading-relaxed max-w-2xl mb-6">
-            沙箱通关后，想接触真实工具链（<code className="inline">{'Ghidra'}</code><span className="text-[var(--text-muted)] font-normal">（反编译器名称）</span>、<code className="inline">{'GDB'}</code><span className="text-[var(--text-muted)] font-normal">（GNU 调试器）</span>、Mutagen）？可以下载案例包在本地虚拟机中复现，
-            每个案例都附带完整分析报告与防护建议。此部分为可选内容，初学阶段先以沙箱为主。
+            下面这些内容保留供学有余力自行浏览，
+            每个案例附带课前整理的参考分析文本（演示样例）。本页不提供现场反编译或自动扫描环境，
+            也不需要下载工具；初学阶段先以 <Link href="/learn/l7" className="text-[var(--brand-500)] underline underline-offset-2">主线第 8 级「综合实践」的新手沙箱</Link> 为主。
           </p>
           <div className="border-t border-[var(--border)]">
             {cases.map((caseItem) => (

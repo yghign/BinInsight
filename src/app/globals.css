@@ -258,7 +258,7 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-size: 16px;
-  line-height: 1.75;
+  line-height: 1.85;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -679,4 +679,535 @@ code.inline {
   .anim-highlight-1, .anim-highlight-2, .anim-highlight-3, .anim-highlight-4 {
     animation: none; opacity: 0.85;
   }
+}
+
+/* ==========================================
+   三态标签 —— 唯一出口 SourceBadge（.u-source-*）
+   固定文案：真实输出 / 演示样例 / 规划中
+   颜色只复用现有 CSS 变量，不新增强调色
+   ========================================== */
+
+.u-source-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  vertical-align: middle;
+}
+
+.u-source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: 11.5px;
+  line-height: 1;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--bg-soft);
+  color: var(--text-muted);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.u-source-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.u-source-real {
+  color: var(--accent-green);
+  border-color: color-mix(in srgb, var(--accent-green) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent-green) 8%, transparent);
+}
+
+.u-source-demo {
+  color: var(--brand-500);
+  border-color: color-mix(in srgb, var(--brand-500) 45%, var(--border));
+  background: color-mix(in srgb, var(--brand-500) 8%, transparent);
+}
+
+.u-source-planned {
+  color: var(--text-soft);
+  border-color: var(--border);
+  background: transparent;
+}
+
+.u-source-note {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-soft);
+}
+
+/* ==========================================
+   术语解释浮层 —— .u-term-* / .u-gloss-*
+   与「使用条款」的 .u-terms-* / .u-drawer-* 严格隔离
+   ========================================== */
+
+.u-term-trigger {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  line-height: inherit;
+}
+
+.u-term-text {
+  border-bottom: 1px dashed var(--brand-500);
+  text-underline-offset: 3px;
+}
+
+.u-term-icon {
+  font-size: 0.8em;
+  line-height: 1;
+  color: var(--brand-500);
+}
+
+.u-term-trigger:hover .u-term-text { border-bottom-color: var(--brand-300); color: var(--brand-400); }
+.u-term-trigger:focus-visible { outline: 2px solid var(--brand-500); outline-offset: 3px; border-radius: 2px; }
+
+.u-gloss-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.u-gloss-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: color-mix(in srgb, #000 52%, transparent);
+  cursor: default;
+  animation: u-fade 0.18s ease-out;
+}
+
+.u-gloss-card {
+  position: relative;
+  width: min(460px, 100%);
+  max-height: min(80vh, 620px);
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 24px 20px;
+  box-shadow: 0 24px 60px -24px var(--shadow);
+  outline: none;
+  animation: u-gloss-in 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes u-gloss-in {
+  from { transform: translateY(8px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.u-gloss-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.u-glass-close,
+.u-gloss-close {
+  border: 0;
+  background: transparent;
+  color: var(--text-soft);
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+}
+.u-gloss-close:hover { color: var(--text); }
+
+.u-gloss-term {
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  margin: 0 0 10px;
+}
+
+.u-gloss-plain {
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--text);
+  margin: 0 0 14px;
+}
+
+.u-gloss-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.u-gloss-level {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 11.5px;
+  color: var(--brand-500);
+  border: 1px solid color-mix(in srgb, var(--brand-500) 35%, var(--border));
+  border-radius: 5px;
+  padding: 4px 8px;
+}
+
+.u-gloss-notice {
+  font-size: 11.5px;
+  color: var(--text-soft);
+  border: 1px dashed var(--border-soft);
+  border-radius: 5px;
+  padding: 4px 8px;
+}
+
+.u-gloss-detail {
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin: 0 0 16px;
+}
+
+.u-gloss-related {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-bottom: 16px;
+}
+
+.u-gloss-related-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-soft);
+  margin-bottom: 8px;
+}
+
+.u-gloss-related-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.u-gloss-related-link {
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 4px 9px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg-soft, transparent);
+  color: var(--brand-500);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.u-gloss-related-link:hover {
+  border-color: var(--brand-500);
+  background: color-mix(in srgb, var(--brand-500) 8%, transparent);
+}
+
+.u-gloss-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.u-gloss-link {
+  color: var(--brand-500);
+  font-size: 13px;
+  font-weight: 500;
+}
+.u-gloss-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .u-gloss-backdrop, .u-gloss-card { animation: none; }
+}
+
+/* ==========================================
+   L8 拓展区统一「课外拓展」横幅
+   ========================================== */
+
+.u-extension-banner {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-soft);
+}
+
+.u-extension-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.u-extension-mark {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--brand-500);
+  border: 1px solid color-mix(in srgb, var(--brand-500) 40%, var(--border));
+  border-radius: 5px;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.u-extension-text {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  flex: 1 1 320px;
+}
+
+.u-extension-back {
+  font-size: 12.5px;
+  color: var(--brand-500);
+  white-space: nowrap;
+}
+.u-extension-back:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ==========================================
+   8 级主线骨架 —— 字号层级 ≥3 级、正文 ≥15px / 行高 ≥1.85
+   ========================================== */
+
+.u-lesson-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 20px 96px;
+}
+
+.u-lesson-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+  margin-bottom: 36px;
+}
+
+.u-lesson-level-label {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.u-lesson-progress-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.u-lesson-tick {
+  width: 26px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border);
+  opacity: 0.45;
+}
+.u-lesson-tick[data-state='done'] { background: var(--brand-500); opacity: 0.9; }
+.u-lesson-tick[data-state='active'] { background: var(--brand-500); opacity: 0.55; }
+
+.u-lesson-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 268px;
+  gap: 56px;
+  align-items: start;
+}
+@media (max-width: 991px) {
+  .u-lesson-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+}
+
+.u-lesson-main { min-width: 0; max-width: 720px; }
+
+.u-lesson-title {
+  font-size: clamp(32px, 3.2vw, 40px);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+}
+
+.u-lesson-section {
+  font-size: 21px;
+  line-height: 1.45;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 12px;
+}
+
+.u-lesson-body {
+  font-size: 15.5px;
+  line-height: 1.9;
+  color: var(--text-muted);
+}
+
+.u-lesson-note {
+  font-size: 12.5px;
+  line-height: 1.8;
+  color: var(--text-soft);
+}
+
+.u-lesson-concept {
+  border: 1px solid color-mix(in srgb, var(--brand-500) 32%, var(--border));
+  background: color-mix(in srgb, var(--brand-500) 6%, transparent);
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-bottom: 28px;
+}
+
+.u-lesson-reuse {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 28px;
+}
+
+.u-lesson-stage {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  padding: 24px;
+  margin: 24px 0;
+}
+
+.u-lesson-sidebar {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+  border-left: 1px solid var(--border);
+  padding-left: 22px;
+}
+@media (max-width: 991px) {
+  .u-lesson-sidebar { position: static; border-left: 0; padding-left: 0; }
+}
+
+.u-lesson-side-title {
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text-soft);
+  margin-bottom: 12px;
+}
+
+.u-lesson-path-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 13.5px;
+  color: var(--text-soft);
+}
+.u-lesson-path-item[data-current='true'] { color: var(--text-bright); font-weight: 600; }
+.u-lesson-path-item[data-done='true'] { color: var(--text-muted); }
+
+.u-lesson-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--border-soft);
+  flex-shrink: 0;
+}
+.u-lesson-path-item[data-current='true'] .u-lesson-dot { background: var(--brand-500); border-color: var(--brand-500); }
+.u-lesson-path-item[data-done='true'] .u-lesson-dot { background: var(--brand-500); opacity: 0.55; }
+
+.u-lesson-ext {
+  margin-top: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+}
+
+.u-lesson-ext summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-muted);
+  list-style: none;
+}
+.u-lesson-ext summary::-webkit-details-marker { display: none; }
+.u-lesson-ext summary::before { content: '▸ '; color: var(--brand-500); }
+.u-lesson-ext[open] summary::before { content: '▾ '; }
+
+.u-lesson-footer {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* 首屏 3D 画布降为低透明度背景纹理（不改 HeroCanvas 组件） */
+.u-hero-low-opacity { opacity: 0.2; }
+
+/* 报告导入 / 对照视图 */
+.u-report-drop {
+  border: 1px dashed var(--border-soft);
+  border-radius: 12px;
+  padding: 22px;
+  text-align: center;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.u-report-drop[data-dragging='true'] {
+  border-color: var(--brand-500);
+  background: color-mix(in srgb, var(--brand-500) 6%, transparent);
+}
+
+.u-report-row {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 12.5px;
+}
+.u-report-row:hover { background: var(--bg-hover); color: var(--text); }
+.u-report-row[data-selected='true'] { background: color-mix(in srgb, var(--brand-500) 8%, transparent); }
+
+.u-warning-card {
+  border: 1px solid color-mix(in srgb, var(--accent-orange) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent-orange) 7%, transparent);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-muted);
+}
+
+.u-error-card {
+  border: 1px solid color-mix(in srgb, var(--accent-red) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent-red) 7%, transparent);
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: var(--text);
 }

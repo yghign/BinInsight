@@ -1,0 +1,57 @@
+{
+  "tool": "dilipa",
+  "version": "0.1.0",
+  "path": "test-minimal.elf",
+  "arch": "x86-64",
+  "bits": 64,
+  "endian": "little",
+  "e_type": "executable",
+  "entry": "0x401000",
+  "sections": [
+    "",
+    ".text",
+    ".plt",
+    ".dynsym",
+    ".dynstr",
+    ".rela.plt",
+    ".shstrtab"
+  ],
+  "cmd": "analyze",
+  "calls": [
+    {
+      "address": "0x401007",
+      "target_plt": "strcpy@plt",
+      "target_func": "strcpy",
+      "is_dangerous": true,
+      "safe_alt": "strncpy",
+      "cwe": "CWE-120"
+    },
+    {
+      "address": "0x40100c",
+      "target_plt": "system@plt",
+      "target_func": "system",
+      "is_dangerous": true,
+      "safe_alt": "execvp",
+      "cwe": "CWE-78"
+    }
+  ],
+  "dangerous": [
+    {
+      "address": "0x401007",
+      "target_plt": "strcpy@plt",
+      "target_func": "strcpy",
+      "is_dangerous": true,
+      "safe_alt": "strncpy",
+      "cwe": "CWE-120"
+    },
+    {
+      "address": "0x40100c",
+      "target_plt": "system@plt",
+      "target_func": "system",
+      "is_dangerous": true,
+      "safe_alt": "execvp",
+      "cwe": "CWE-78"
+    }
+  ],
+  "instruction_count": 5
+}

@@ -2,6 +2,10 @@
  * 漏洞工作台注册表 —— /reference 索引页、路径面板、四段式工作台共用的元数据。
  * 设计原则：四个互链的漏洞工作台，每个都有完整四段式内容，
  *          背景知识沉到 glossary（每个工作台右侧跳转链接）。
+ *
+ * ⚠️ 本次改造：本注册表整体归 L8 拓展区（extension-only），
+ * 主线 L0~L7 的路径与前进按钮不会出现这里的任何条目；
+ * 代码与页面内容全部保留，只在页面顶部加「不进入主线演示」横幅。
  */
 
 export interface VulnPathNode {
@@ -66,8 +70,15 @@ export const glossary: GlossRef[] = [
   { slug: 'fmt', term: 'printf 格式串参数' },
 ];
 
-/** 当前知识库完成状态的 localStorage key（工作台四段式 × 每个漏洞） */
-export const PROGRESS_STORAGE_KEY = 'bininsight-ref-progress-v1';
+/** 本注册表的作用域标记：仅供 L8 拓展区，主线不引用。 */
+export const VULN_PATH_SCOPE = 'extension-only' as const;
+
+/**
+ * 旧四段式工作台进度 key。
+ * 唯一定义在 src/lib/storage.ts（KEY_REF），这里只做 re-export，保证 localStorage
+ * key 全站只有一个出口；旧 useProgress 的行为保持不变。
+ */
+export { KEY_REF as PROGRESS_STORAGE_KEY } from '@/lib/storage';
 
 /** 四段式步骤 id（全局固定） */
 export const STEPS = ['principle', 'demo', 'hands', 'defense'] as const;

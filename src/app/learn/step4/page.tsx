@@ -273,7 +273,7 @@ function ProtectionComparison() {
           {/* 绕过方法 */}
           <div className="border border-[var(--border)] rounded-md p-4">
             <h5 className="font-mono text-[11px] tracking-wider text-accent-red mb-2">
-              绕过方法 / BYPASS
+              绕过方法 / WORKAROUND
             </h5>
             <div className="text-[12.5px] text-[var(--text-muted)] whitespace-pre-line leading-relaxed">
               {active.bypassMethod}

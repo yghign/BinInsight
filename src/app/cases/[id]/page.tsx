@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getCaseById, cases } from '@/data/cases';
 import CodeBlock from '@/components/CodeBlock';
+import SourceBadge from '@/components/SourceBadge';
 
 interface CasePageProps {
   params: Promise<{ id: string }>;
@@ -39,7 +40,7 @@ export default async function CaseDetailPage({ params }: CasePageProps) {
           <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)] mb-6 flex-wrap">
             <Link href="/" className="hover:text-[var(--text)] transition-colors">首页</Link>
             <span className="text-[var(--border-soft)]">/</span>
-            <Link href="/cases" className="hover:text-[var(--text)] transition-colors">案例展示</Link>
+            <Link href="/cases" className="hover:text-[var(--text)] transition-colors">动手实践</Link>
             <span className="text-[var(--border-soft)]">/</span>
             <span className="text-[var(--text-muted)] truncate max-w-[240px]">{caseData.title}</span>
           </div>
@@ -72,22 +73,19 @@ export default async function CaseDetailPage({ params }: CasePageProps) {
               <p className="u-eyebrow mb-1.5">Download</p>
               <h2 className="text-lg font-semibold mb-1">下载目标文件</h2>
               <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">
-                下载案例文件到本地，使用 Ghidra、Mutagen 或其他工具独立分析。
+                案例文件与参考分析文本为课前整理的教学素材（演示样例），
+                本站不提供现场反编译或自动扫描工具，主线演示不需要下载任何东西。
               </p>
             </div>
-            <a
-              href={caseData.downloadUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="u-btn u-btn-primary flex-shrink-0"
-            >
-              下载案例包
-              <span className="font-mono" aria-hidden="true">→</span>
-            </a>
+            <div className="flex flex-col items-start gap-2 flex-shrink-0">
+              <SourceBadge state="planned" />
+              <span className="font-mono text-[11px] text-[var(--text-soft)]">案例包未随本次作业提供</span>
+            </div>
           </div>
           <div className="mt-5 pt-4 border-t border-[var(--border)]">
-            <p className="font-mono text-[11px] leading-relaxed text-accent-orange">
-              [注意] 案例文件包含真实的漏洞程序，仅供学习研究使用，请在隔离环境中运行，不要部署到生产环境。详见{' '}
+            <p className="font-mono text-[11px] leading-relaxed text-[var(--text-muted)]">
+              本页保留的是课前整理的分析文本，不附带可下载的漏洞程序，也不提供现场运行环境。
+              请以「演示样例」理解下方所有代码与日志。详见{' '}
               <Link href="/terms" className="underline underline-offset-2">使用条款</Link>。
             </p>
           </div>
@@ -171,8 +169,8 @@ export default async function CaseDetailPage({ params }: CasePageProps) {
             <div className="mt-5 pt-4 border-t border-[var(--border)]">
               <p className="font-mono text-[11px] tracking-wider text-[var(--text-soft)] mb-2">提示 · HINT</p>
               <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">
-                在对照答案之前，建议先独立完成分析。你可以使用 Mutagen 工具自动扫描，
-                也可以手动使用 Ghidra 进行静态分析，然后将你的结果与本报告进行对比。
+                在对照答案之前，建议先照着主线 L2「找 call、看名字」与 L3「加长度上限」的思路自己想一遍，
+                再与下面的文本比对。本页不调用任何自动扫描工具，预期结果只是课前整理的参考分析（演示样例）。
               </p>
             </div>
           </div>

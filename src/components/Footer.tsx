@@ -1,29 +1,34 @@
 import Link from 'next/link';
 import { TermsButton } from './TermsDrawer';
 
+/**
+ * Footer：品牌 + 导航链接 + 版权 + 条款链接。
+ */
+
 const columns = [
   {
-    title: '学习路径',
+    title: '8 级主线',
     links: [
-      { href: '/learn/step1', label: '解包与识别' },
-      { href: '/learn/step2', label: '静态分析' },
-      { href: '/learn/step3', label: '路径探索' },
-      { href: '/learn/step4', label: '防护策略' },
+      { href: '/learn', label: '从 L0 开始' },
+      { href: '/learn/l2', label: 'L2 · 找到 call' },
+      { href: '/learn/l3', label: 'L3 · 限长修复' },
+      { href: '/learn/l7', label: 'L7 · 自己走一遍' },
     ],
   },
   {
-    title: '工具 / 案例',
+    title: '漏洞手册',
     links: [
-      { href: '/tools/mutagen', label: 'Mutagen 一键工具' },
-      { href: '/tools/dilipa', label: 'Dilipa 微补丁台' },
-      { href: '/cases', label: '实战案例库' },
+      { href: '/library', label: '漏洞手册' },
+      { href: '/reference/glossary', label: '核心概念' },
     ],
   },
   {
-    title: '关于',
+    title: '实践',
     links: [
-      { href: '/terms', label: '使用条款', terms: true },
-      { href: 'https://github.com/yghign/BinInsight', label: 'GitHub 仓库', external: true },
+      { href: '/cases', label: '动手实践' },
+      { href: '/tools', label: '工具' },
+      { href: '/tools/dilipa', label: 'Dilipa' },
+      { href: '/tools/mutagen', label: 'Mutagen' },
     ],
   },
 ];
@@ -41,9 +46,7 @@ export default function Footer() {
               <span className="font-semibold text-[15px] tracking-tight">BinInsight</span>
             </div>
             <p className="text-[13px] leading-relaxed text-[var(--text-soft)]">
-              逆向工程与漏洞防护学习平台
-              <br />
-              洞见二进制，从看见每一条指令开始。
+              从一行 C 代码，看懂一次溢出。
             </p>
           </div>
 
@@ -51,43 +54,26 @@ export default function Footer() {
             <div key={col.title}>
               <h4 className="u-eyebrow mb-4">{col.title}</h4>
               <ul className="space-y-2.5">
-                {col.links.map((link) =>
-                  'terms' in link && link.terms ? (
-                    <li key={link.href}>
-                      <TermsButton className="text-[13px] text-[var(--text-soft)] transition-colors hover:text-[var(--text)]">
-                        {link.label}
-                      </TermsButton>
-                    </li>
-                  ) : 'external' in link && link.external ? (
-                    <li key={link.href}>
-                      <a
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[13px] text-[var(--text-soft)] hover:text-[var(--text)] transition-colors"
-                      >
-                        {link.label}
-                      </a>
-                    </li>
-                  ) : (
-                    <li key={link.href}>
-                      <Link
-                        href={link.href}
-                        className="text-[13px] text-[var(--text-soft)] hover:text-[var(--text)] transition-colors"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  )
-                )}
+                {col.links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-[13px] text-[var(--text-soft)] hover:text-[var(--text)] transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
           ))}
         </div>
 
-        <div className="mt-12 pt-6 border-t border-[var(--border)] flex flex-col sm:flex-row justify-between gap-2 text-xs text-[var(--text-soft)]">
-          <span className="font-mono">© 2024 BinInsight · 仅供教育与授权研究使用</span>
-          <span className="font-mono">REVERSE ENGINEERING / VULN MITIGATION</span>
+        <div className="mt-12 pt-6 border-t border-[var(--border)] flex items-center justify-between gap-3 flex-wrap text-xs text-[var(--text-soft)]">
+          <span className="font-mono">© 2024 BinInsight</span>
+          <TermsButton className="text-xs text-[var(--text-soft)] transition-colors hover:text-[var(--text)]">
+            使用条款
+          </TermsButton>
         </div>
       </div>
     </footer>

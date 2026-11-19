@@ -2,48 +2,37 @@
 
 import clsx from 'clsx';
 
-export type Mode = 'beginner' | 'advanced';
-
-interface ModeToggleProps {
-  mode: Mode;
-  onChange: (mode: Mode) => void;
+/**
+ * 难度模式显示（T06 / PRD Q2）。
+ *
+ * 主线固定锁定「新手」：进阶开关整体隐藏，避免老师演示时误切到进阶块。
+ * 旧 step1~step4 页面的进阶块代码全部保留（不删），归 L8 拓展区并加「课外拓展」横幅；
+ * 由于 mode 恒为 beginner，这些进阶块不会在主线演示中出现。
+ *
+ * 保留原有 props 签名以兼容旧页面调用；onChange 不再会被触发。
+ */
+export interface ModeToggleProps {
+  mode?: 'beginner' | 'advanced';
+  onChange?: (mode: 'beginner' | 'advanced') => void;
   className?: string;
 }
 
-const options: { id: Mode; label: string }[] = [
-  { id: 'beginner', label: '新手' },
-  { id: 'advanced', label: '进阶' },
-];
+export type Mode = 'beginner' | 'advanced';
 
-export default function ModeToggle({ mode, onChange, className }: ModeToggleProps) {
+export default function ModeToggle({ className }: ModeToggleProps) {
   return (
     <div
       className={clsx(
-        'inline-flex items-center border border-[var(--border)] rounded-md p-0.5 bg-[var(--bg-soft)]',
+        'inline-flex items-center border border-[var(--border)] rounded-md bg-[var(--bg-soft)] px-3.5 py-1.5',
         className
       )}
-      role="tablist"
-      aria-label="难度模式"
+      role="note"
+      aria-label="难度模式：新手"
     >
-      {options.map((opt) => {
-        const active = mode === opt.id;
-        return (
-          <button
-            key={opt.id}
-            role="tab"
-            aria-selected={active}
-            onClick={() => onChange(opt.id)}
-            className={clsx(
-              'px-3.5 py-1.5 rounded-[4px] font-mono text-[12px] tracking-wide transition-colors',
-              active
-                ? 'bg-[var(--bg-card)] text-[var(--brand-500)] border border-[var(--border)]'
-                : 'border border-transparent text-[var(--text-soft)] hover:text-[var(--text-muted)]'
-            )}
-          >
-            {opt.label}
-          </button>
-        );
-      })}
+      <span className="font-mono text-[12px] tracking-wide text-[var(--brand-500)]">
+        新手
+      </span>
+      <span className="u-lesson-note ml-2">进阶内容可选阅读</span>
     </div>
   );
 }

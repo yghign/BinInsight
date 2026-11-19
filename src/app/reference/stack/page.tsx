@@ -8,7 +8,7 @@ import { getVulnNode, vulnPath } from '@/data/reference';
 const node = getVulnNode('stack')!;
 
 export const metadata = {
-  title: '栈溢出 · 逆向工作台',
+  title: '栈溢出 · 深度工作台',
   description: '四段式学习栈溢出：栈帧图解 · GDB 步进演示 · payload 构造 · 防御视角与修复。',
 };
 
@@ -179,7 +179,7 @@ export default function StackPage() {
         <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)]">
           <Link href="/" className="hover:text-[var(--text)]">首页</Link>
           <span>/</span>
-          <Link href="/reference" className="hover:text-[var(--text)]">逆向工作台</Link>
+          <Link href="/reference" className="hover:text-[var(--text)]">深度工作台</Link>
           <span>/</span>
           <span className="text-[var(--text-muted)]">栈溢出</span>
         </div>

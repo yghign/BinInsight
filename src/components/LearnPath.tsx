@@ -3,68 +3,54 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
+import { LESSON_LEVELS } from '@/data/lesson';
+import { nodeStatus } from '@/lib/lesson';
+import { useLessonProgress } from './useProgress';
 
 /**
- * 教学路径纵向节点预览 —— 细线连接 + 透明度/线宽区分状态。
- * 用于 learn 区和首页首屏右侧，替代横向 StepProgress。
+ * 8 级纵向路径线 —— 细线连接 + 透明度/线宽区分状态。
+ * LEARN_STEPS 已抽到 data/lesson.ts 成为唯一数据源（原 4 步静态数组已移除）。
+ * 状态机复用 lib/lesson.ts 的 nodeStatus()（前置链三态：done / active / locked）。
  */
-
-const LEARN_STEPS = [
-  { id: 'step1', href: '/learn/step1', title: '解包与识别', sub: '看懂 ELF，识别加壳' },
-  { id: 'step2', href: '/learn/step2', title: '静态分析', sub: '反汇编 + 危险函数定位' },
-  { id: 'step3', href: '/learn/step3', title: '路径探索', sub: 'GDB 调试 + 漏洞确认' },
-  { id: 'step4', href: '/learn/step4', title: '防护策略', sub: 'Canary / NX / ASLR / CFI' },
-];
-
-interface Props {
-  compact?: boolean;
-}
-
-export default function LearnPath({ compact = false }: Props) {
-  const pathname = usePathname();
-  const currentIdx = LEARN_STEPS.findIndex((s) => pathname?.startsWith(s.href));
-
-  const status = (idx: number): 'done' | 'active' | 'pending' => {
-    if (idx < currentIdx) return 'done';
-    if (idx === currentIdx) return 'active';
-    return 'pending';
-  };
+export default function LearnPath({ compact = false }: { compact?: boolean }) {
+  const pathname = usePathname() ?? '';
+  const { progress } = useLessonProgress();
+  const currentId =
+    LESSON_LEVELS.find((item) => pathname.startsWith(item.route))?.id ?? 'l0';
 
   return (
-    <nav aria-label="学习路径">
+    <nav aria-label="8 级学习路径">
       <ol className="space-y-0">
-        {LEARN_STEPS.map((step, idx) => {
-          const st = status(idx);
+        {LESSON_LEVELS.map((step, idx) => {
+          const status = nodeStatus(step.id, currentId, progress);
+          const isCurrent = step.id === currentId;
           return (
             <li key={step.id} className="relative">
-              {/* 上行细线 */}
               {idx > 0 && (
                 <span
                   aria-hidden="true"
                   className={clsx(
-                    'absolute left-[6px] top-0 -translate-x-1/2 w-px',
-                    st === 'done' && 'h-[calc(100%+0.25rem)] bg-[var(--border-soft)] opacity-70',
-                    st === 'active' && 'h-[calc(100%+0.25rem)] bg-[var(--border)]',
-                    st === 'pending' && 'h-[calc(100%+0.25rem)] bg-[var(--border)] opacity-30'
+                    'absolute left-[6px] top-0 -translate-x-1/2 w-px h-[calc(100%+0.25rem)]',
+                    status === 'locked' ? 'bg-[var(--border)] opacity-30' : 'bg-[var(--border-soft)] opacity-70'
                   )}
                 />
               )}
               <Link
-                href={step.href}
-                aria-current={st === 'active' ? 'page' : undefined}
+                href={step.route}
+                aria-current={isCurrent ? 'page' : undefined}
                 className={clsx(
                   'flex items-start gap-3 rounded-md transition-colors -mx-2 px-2',
-                  st !== 'pending' && 'hover:bg-[var(--bg-soft)]',
-                  st === 'pending' && 'opacity-60'
+                  status !== 'locked' && 'hover:bg-[var(--bg-soft)]',
+                  status === 'locked' && 'opacity-60'
                 )}
               >
                 <span
                   aria-hidden="true"
                   className={clsx(
                     'relative z-[1] flex-shrink-0 w-3 h-3 mt-3 rounded-full border',
-                    st === 'done' && 'border-[var(--brand-500)] bg-[var(--brand-500)]',
-                    st === 'active' && 'border-[var(--brand-500)] bg-transparent',
-                    st === 'pending' && 'border-[var(--border-soft)] bg-transparent'
+                    status === 'done' && 'border-[var(--brand-500)] bg-[var(--brand-500)]',
+                    status === 'active' && 'border-[var(--brand-500)] bg-transparent',
+                    status === 'locked' && 'border-[var(--border-soft)] bg-transparent'
                   )}
                 />
                 <span className="min-w-0 py-2.5">
@@ -72,29 +58,24 @@ export default function LearnPath({ compact = false }: Props) {
                     className={clsx(
                       'block font-medium tracking-tight',
                       compact ? 'text-[13px]' : 'text-[14px]',
-                      st === 'done' && 'text-[var(--text)]',
-                      st === 'active' && 'text-[var(--text-bright)]',
-                      st === 'pending' && 'text-[var(--text-soft)]'
+                      isCurrent ? 'text-[var(--text-bright)]' : 'text-[var(--text-muted)]'
                     )}
                   >
-                    {step.title}
+                    {idx + 1}. {step.title}
                   </span>
                   {!compact && (
                     <span className="block font-mono text-[10.5px] mt-0.5 text-[var(--text-soft)]">
-                      {step.sub}
+                      本级只学 1 件事{step.id === 'l7' ? '（本级 0 个新概念）' : ''}
                     </span>
                   )}
                 </span>
               </Link>
-              {/* 下行细线 */}
-              {idx < LEARN_STEPS.length - 1 && (
+              {idx < LESSON_LEVELS.length - 1 && (
                 <span
                   aria-hidden="true"
                   className={clsx(
-                    'absolute left-[6px] bottom-0 -translate-x-1/2 w-px',
-                    st === 'done' && 'h-[calc(100%+0.25rem)] bg-[var(--border-soft)] opacity-70',
-                    st === 'active' && 'h-[calc(100%+0.25rem)] bg-[var(--border)]',
-                    st === 'pending' && 'h-[calc(100%+0.25rem)] bg-[var(--border)] opacity-30'
+                    'absolute left-[6px] bottom-0 -translate-x-1/2 w-px h-[calc(100%+0.25rem)] bg-[var(--border)]',
+                    status === 'locked' ? 'opacity-30' : 'opacity-70'
                   )}
                 />
               )}

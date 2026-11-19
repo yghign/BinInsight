@@ -15,4 +15,4 @@ build/
 *.elf
 .idea/
 .vscode/
-*.iml
+*.iml.next.prev-*/

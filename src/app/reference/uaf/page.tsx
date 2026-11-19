@@ -8,7 +8,7 @@ import { getVulnNode, vulnPath } from '@/data/reference';
 const node = getVulnNode('uaf')!;
 
 export const metadata = {
-  title: 'Use-After-Free · 逆向工作台',
+  title: 'Use-After-Free · 深度工作台',
   description: '四段式学习 Use-After-Free：悬垂指针 + vtable 劫持 + 类型混淆。',
 };
 
@@ -164,7 +164,7 @@ export default function UafPage() {
         <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)]">
           <Link href="/" className="hover:text-[var(--text)]">首页</Link>
           <span>/</span>
-          <Link href="/reference" className="hover:text-[var(--text)]">逆向工作台</Link>
+          <Link href="/reference" className="hover:text-[var(--text)]">深度工作台</Link>
           <span>/</span>
           <span className="text-[var(--text-muted)]">Use-After-Free</span>
         </div>

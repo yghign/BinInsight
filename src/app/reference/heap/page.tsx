@@ -8,7 +8,7 @@ import { getVulnNode, vulnPath } from '@/data/reference';
 const node = getVulnNode('heap')!;
 
 export const metadata = {
-  title: '堆利用入门 · 逆向工作台',
+  title: '堆利用入门 · 深度工作台',
   description: '四段式学习堆利用：glibc malloc 流程图解 · double free GDB 演示 · tcache poisoning payload 构造 · 防御视角与 safe-linking。',
 };
 
@@ -212,7 +212,7 @@ export default function HeapPage() {
         <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)]">
           <Link href="/" className="hover:text-[var(--text)]">首页</Link>
           <span>/</span>
-          <Link href="/reference" className="hover:text-[var(--text)]">逆向工作台</Link>
+          <Link href="/reference" className="hover:text-[var(--text)]">深度工作台</Link>
           <span>/</span>
           <span className="text-[var(--text-muted)]">堆利用入门</span>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Play, RotateCcw } from 'lucide-react';
+import SourceBadge from './SourceBadge';
 
 const originalC = `#include <stdio.h>
 #include <string.h>
@@ -230,10 +231,14 @@ export default function DilipaDemo() {
     <div className="u-panel p-5 md:p-7">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-7">
         <div>
-          <p className="u-eyebrow mb-1.5">Live Demo</p>
+          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+            <p className="u-eyebrow">演示样例</p>
+            <SourceBadge state="demo" />
+          </div>
           <h3 className="text-lg md:text-xl font-semibold tracking-tight">概念演示：strcpy → strncpy</h3>
           <p className="text-[13px] text-[var(--text-muted)] mt-1">
-            先通读下面两层代码，再点击右上角「应用补丁」，逐行对比红绿差异 —— 看一行 C 代码的修改如何在汇编层落地。
+            下面两层代码是课前备好的教学素材。点击右上角「看修改建议」，按行对齐并排对比红绿差异 ——
+            这只是逐行字符串对比，不是语法树对比，也不写回任何二进制。
           </p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
@@ -243,7 +248,7 @@ export default function DilipaDemo() {
             className="u-btn u-btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Play size={13} />
-            应用补丁
+            看修改建议
           </button>
           <button
             onClick={() => setPatched(false)}
@@ -349,8 +354,8 @@ export default function DilipaDemo() {
             </li>
           </ul>
           <div className="mt-4 pt-3 border-t border-[var(--border)] font-mono text-[11px] leading-relaxed text-[var(--text-soft)]">
-            注：以上为概念演示。实际 Dilipa 工具会通过 AST Diff 精确计算最小修改集，
-            并通过二进制重写引擎生成 trampoline 或直接替换指令。
+            注：以上为演示样例。这里的差异由「按行对齐的字符串比较」得出，只回答「哪几行变了」；
+            语法树对比、二进制重写与跳转衔接属于后续工作（规划中），本次未实现，也不写回二进制。
           </div>
         </div>
       )}

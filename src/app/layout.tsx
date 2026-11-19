@@ -3,11 +3,14 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { TermsProvider } from '@/components/TermsDrawer';
+import { GlossaryProvider } from '@/components/GlossaryProvider';
 
+/** metadata 收口：改为课程作业的白话定位，不再沿用产品化的成品口吻。 */
 export const metadata: Metadata = {
-  title: 'BinInsight · 洞见二进制 — 逆向工程与漏洞防护学习平台',
-  description: '面向新手到进阶的逆向工程与漏洞防护学习网站，包含教学引导、工具下载和实战案例三层结构。',
-  keywords: ['逆向工程', '漏洞防护', '二进制安全', 'CTF', 'Pwn', 'Ghidra', '栈溢出', '漏洞分析'],
+  title: 'BinInsight · 从一行 C 代码，看懂一次溢出',
+  description:
+    '8 级渐进的二进制安全入门课，不用装环境、不用懂汇编。',
+  keywords: ['二进制安全入门', '缓冲区溢出', 'strcpy', 'strncpy', 'Canary'],
   icons: {
     icon: '/BinInsight/favicon.svg',
   },
@@ -55,10 +58,16 @@ export default function RootLayout({
             `,
           }}
         />
+        {/*
+          命名隔离：TermsProvider（使用条款）与 GlossaryProvider（术语解释）
+          并列挂载，互不嵌套依赖。点「术语」只会弹出白话解释，绝不弹法律条款。
+        */}
         <TermsProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <GlossaryProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </GlossaryProvider>
         </TermsProvider>
       </body>
     </html>

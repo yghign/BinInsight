@@ -1,7 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { sandboxCases, getSandboxById, difficultyTone } from '@/data/sandbox';
+import { getGlossEntry } from '@/data/glossary';
 import SandboxPlayer from '@/components/SandboxPlayer';
+import TermButton from '@/components/TermButton';
+import SourceBadge from '@/components/SourceBadge';
 
 interface SandboxPageProps {
   params: Promise<{ id: string }>;
@@ -38,7 +41,7 @@ export default async function SandboxCasePage({ params }: SandboxPageProps) {
           <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)] mb-6 flex-wrap">
             <Link href="/" className="hover:text-[var(--text)] transition-colors">首页</Link>
             <span className="text-[var(--border-soft)]">/</span>
-            <Link href="/cases" className="hover:text-[var(--text)] transition-colors">案例展示</Link>
+            <Link href="/cases" className="hover:text-[var(--text)] transition-colors">动手实践</Link>
             <span className="text-[var(--border-soft)]">/</span>
             <span className="text-[var(--text-muted)] truncate max-w-[260px]">{sb.title}</span>
           </div>
@@ -49,12 +52,24 @@ export default async function SandboxCasePage({ params }: SandboxPageProps) {
             <span className="u-tag !text-brand-400">{sb.vulnType}</span>
             <span className="u-tag">预计 {sb.minutes} 分钟</span>
             <span className="u-tag">{sb.stages.length} 个阶段</span>
+            <SourceBadge state="demo" />
           </div>
 
           <h1 className="u-display text-2xl md:text-[36px] mb-4">{sb.title}</h1>
           <p className="text-[14px] md:text-[15px] text-[var(--text-muted)] max-w-3xl leading-relaxed mb-5">
             {sb.brief}
           </p>
+
+          {sb.terms && sb.terms.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 mb-5">
+              <span className="font-mono text-[11px] tracking-wider text-[var(--text-soft)] mr-1">
+                本案例术语
+              </span>
+              {sb.terms.filter((termId) => getGlossEntry(termId)).map((termId) => (
+                <TermButton key={termId} termId={termId} />
+              ))}
+            </div>
+          )}
 
           <div className="u-panel p-5">
             <div className="flex items-start gap-3">

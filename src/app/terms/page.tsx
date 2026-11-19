@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { TERMS_NOTICE, TERMS_SECTIONS, TERMS_UPDATED } from '@/data/terms';
+import SourceBadge from '@/components/SourceBadge';
 
 export const metadata = {
   title: '使用条款 | BinInsight',
-  description: 'BinInsight 平台使用条款：教育用途声明、合法使用承诺、免责声明及第三方声明。',
+  description:
+    '本站使用条款：教育用途声明、合法使用承诺、免责声明、第三方声明。本站无对外运营团队与联系邮箱。',
 };
 
 export default function TermsPage() {
@@ -21,8 +23,15 @@ export default function TermsPage() {
           <p className="u-eyebrow mb-2">Terms of Use</p>
           <h1 className="u-display text-3xl md:text-[40px] mb-3">使用条款</h1>
           <p className="text-[15px] text-[var(--text-muted)] max-w-2xl leading-relaxed">
-            使用 BinInsight 平台前请仔细阅读以下条款。使用本平台即表示您同意遵守这些条款。
+            本站仅供教学演示使用。以下条款说明教育用途、合法使用边界与免责事项；
+            平台没有对外运营团队，也不提供可下载的工具程序。
           </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2.5">
+            <SourceBadge state="planned" />
+            <span className="text-[12px] text-[var(--text-muted)]">
+              本页内容保留供查阅。
+            </span>
+          </div>
         </div>
       </div>
 

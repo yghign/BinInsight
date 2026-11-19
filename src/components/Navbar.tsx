@@ -8,10 +8,9 @@ import ThemeToggle from './ThemeToggle';
 import { TermsButton } from './TermsDrawer';
 
 const navItems = [
-  { href: '/learn', label: '教学', section: '/learn' },
-  { href: '/reference', label: '知识库', section: '/reference' },
+  { href: '/learn', label: '8 级主线', section: '/learn' },
+  { href: '/library', label: '漏洞手册', section: '/library' },
   { href: '/tools', label: '工具', section: '/tools' },
-  { href: '/cases', label: '案例', section: '/cases' },
 ];
 
 const FONT_STEPS = [

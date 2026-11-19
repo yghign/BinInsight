@@ -115,7 +115,7 @@ print("Payload generated:", len(payload), "bytes")`,
       '代码审查中重点检查 gets、strcpy、sprintf 等无边界检查函数',
     ],
     expectedResult:
-      '运行 Mutagen 扫描应检测到 CWE-120 缓冲区溢出漏洞，定位到 gets() 调用行，漏洞严重等级为 Critical。自动修复建议应将 gets() 替换为 fgets() 并正确设置缓冲区大小。在关闭保护机制的环境中，手工构造的 exploit 应能成功控制程序执行流并弹出 shell。',
+      '对照 L2 定位到的 call gets 那一行，说明它「不检查长度」；再对照 L3 的修复思路，把 gets 换成带长度上限的 fgets 并正确设置缓冲区大小。网站不提供可现场运行的自动扫描工具，以上为课前整理的参考分析文本（演示样例）。',
     relatedSteps: [
       { label: 'Step 2 · 静态分析', href: '/learn/step2' },
       { label: 'Step 3 · 路径探索', href: '/learn/step3' },
@@ -229,7 +229,7 @@ void exploit_uaf() {
       '启用堆随机化和安全堆元数据校验',
     ],
     expectedResult:
-      '运行 Mutagen 扫描应检测到 CWE-416 Use-After-Free 漏洞，定位到第二次调用虚函数的代码行，漏洞严重等级为 High。在 Ghidra 中应能清晰看到虚表指针（vptr）在对象内存布局中的位置。在关闭保护的环境中，通过堆喷射可稳定劫持控制流。',
+      '能指出「对象释放后指针仍被使用」的第二次虚函数调用行，并说明为什么它危险。虚表指针（vptr）与堆喷射等进阶内容可选阅读，网站不提供现场反编译环境；以上为课前整理的参考分析文本（演示样例）。',
     relatedSteps: [
       { label: 'Step 2 · 静态分析', href: '/learn/step2' },
       { label: 'Step 3 · 路径探索', href: '/learn/step3' },
@@ -326,7 +326,7 @@ AAAA%x.%x.%x.%x
       '对用户输入进行严格的过滤和白名单校验',
     ],
     expectedResult:
-      '通过二进制补丁比对，应能定位到 process_input 函数中的 printf 调用变化，识别出从 printf(buf) 到 printf(\"%s\", buf) 的修复模式。运行 Mutagen 扫描旧版本应检测到 CWE-134 格式化字符串漏洞，扫描新版本则不应报告该漏洞。这验证了修复的有效性。',
+      '对照 L3 的并排 diff 思路，能定位到 process_input 函数里 printf 调用的变化，并说出从 printf(buf) 到 printf("%s", buf) 改了什么。网站不提供现场自动扫描；以上为课前整理的参考分析文本（演示样例）。',
     relatedSteps: [
       { label: 'Step 2 · 静态分析', href: '/learn/step2' },
       { label: 'Step 4 · 防护策略', href: '/learn/step4' },

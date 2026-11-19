@@ -28,7 +28,9 @@ interface Props {
 }
 
 export default function SandboxPlayer({ caseData }: Props) {
-  const [guideOn, setGuideOn] = useState(caseData.difficulty === 'beginner');
+  const [guideOn, setGuideOn] = useState(
+    caseData.difficulty === 'beginner' || caseData.difficulty === 'beginner-plus'
+  );
   const [stageIdx, setStageIdx] = useState(0);
   const [states, setStates] = useState<Record<string, StageState>>({});
   const [wrongPicks, setWrongPicks] = useState<Record<string, number[]>>({});
@@ -74,7 +76,7 @@ export default function SandboxPlayer({ caseData }: Props) {
   };
 
   const handleRestart = () => {
-    setGuideOn(caseData.difficulty === 'beginner');
+    setGuideOn(caseData.difficulty === 'beginner' || caseData.difficulty === 'beginner-plus');
     setStageIdx(0);
     setStates({});
     setWrongPicks({});
@@ -337,7 +339,7 @@ export default function SandboxPlayer({ caseData }: Props) {
               重新开始
             </button>
             <Link href="/cases" className="u-btn u-btn-primary">
-              返回案例列表
+              返回动手实践
               <span className="font-mono" aria-hidden="true">→</span>
             </Link>
           </div>

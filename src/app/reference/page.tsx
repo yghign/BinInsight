@@ -4,7 +4,7 @@ import PathPreview from '@/components/PathPreview';
 import { vulnPath } from '@/data/reference';
 
 export const metadata = {
-  title: '逆向工作台 · BinInsight',
+  title: '深度工作台 · BinInsight',
   description: '四段式漏洞学习：原理图解 · 演示终端 · 动手构造 payload · 防御视角。互链而非孤立。',
 };
 
@@ -31,14 +31,14 @@ export default function ReferenceIndexPage() {
           <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)]">
             <Link href="/" className="hover:text-[var(--text)] transition-colors">首页</Link>
             <span className="text-[var(--border-soft)]">/</span>
-            <span className="text-[var(--text-muted)]">逆向工作台</span>
+            <span className="text-[var(--text-muted)]">深度工作台</span>
           </div>
 
           {/* 标题区 */}
           <section className="space-y-5">
             <p className="u-eyebrow">REVERSE ENGINEERING WORKBENCH</p>
             <h1 className="u-display text-3xl md:text-[40px] leading-tight">
-              逆向工作台
+              深度工作台
             </h1>
             <p className="text-[15px] text-[var(--text-muted)] leading-relaxed max-w-xl">
               四个漏洞，每个四段。不把它们切成孤立的知识点 —— 让栈溢出的 <code className="inline">ret</code><span className="text-[var(--text-muted)] font-normal">（返回指令）</span> 覆盖动画和
@@ -75,7 +75,7 @@ export default function ReferenceIndexPage() {
           <div className="font-mono text-[11px] tracking-wider text-[var(--text-soft)]">LEARNING PATH</div>
           <PathPreview />
           <p className="font-mono text-[10.5px] text-[var(--text-soft)] leading-relaxed">
-            四个漏洞 · 渐进解锁 · 进度存在浏览器 localStorage
+            四个漏洞
           </p>
         </aside>
       </div>

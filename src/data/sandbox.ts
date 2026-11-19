@@ -4,7 +4,7 @@
  * 每个阶段：材料展示 + 提问 + 全选项解释（对错都有解释，点错也能学到东西）。
  */
 
-export type SandboxDifficulty = 'beginner' | 'basic' | 'intermediate' | 'advanced';
+export type SandboxDifficulty = 'beginner' | 'beginner-plus' | 'basic' | 'intermediate' | 'advanced';
 
 export type SandboxTool =
   | 'terminal'
@@ -47,7 +47,7 @@ export interface SandboxCase {
   id: string;
   title: string;
   difficulty: SandboxDifficulty;
-  difficultyLabel: '新手' | '低难度' | '中难度' | '高难度';
+  difficultyLabel: '新手' | '新手 +' | '低难度' | '中难度' | '高难度';
   vulnType: string;
   cwe: string;
   minutes: number;
@@ -58,11 +58,14 @@ export interface SandboxCase {
   stages: SandboxStage[];
   summary: string;
   protection: string[];
+  /** 本案例术语（glossary.ts 的 GlossEntry.id）；详情页据此渲染「本案例术语」行 */
+  terms?: string[];
   relatedSteps: { label: string; href: string }[];
 }
 
 export const difficultyTone: Record<SandboxDifficulty, string> = {
   beginner: 'text-accent-green border-accent-green/40',
+  'beginner-plus': 'text-accent-cyan border-accent-cyan/40',
   basic: 'text-accent-cyan border-accent-cyan/40',
   intermediate: 'text-accent-orange border-accent-orange/40',
   advanced: 'text-accent-red border-accent-red/40',
@@ -77,6 +80,7 @@ export const sandboxCases: SandboxCase[] = [
     title: '新手起步：gets() 栈溢出',
     difficulty: 'beginner',
     difficultyLabel: '新手',
+    terms: ['overflow', 'strcpy', 'call', 'strncpy', 'canary', 'crash', 'strip', 'elf', 'shell', 'offset'],
     vulnType: 'CWE-120 缓冲区溢出',
     cwe: 'CWE-120',
     minutes: 15,
@@ -358,6 +362,7 @@ D. 在 gets 后面检查 granted 有没有被改`,
       '链接启用 NX 与 ASLR，让注入代码不可执行、地址不可预测',
       '代码审查重点：所有"输入函数 + 固定缓冲区"的组合',
     ],
+    // L7 复用 · 红线保护 · 勿改旧路由（/learn/l7 底部关联学习区块逐字依赖此处）
     relatedSteps: [
       { label: '教学 · 静态分析', href: '/learn/step2' },
       { label: '教学 · 路径探索', href: '/learn/step3' },
@@ -366,18 +371,19 @@ D. 在 gets 后面检查 granted 有没有被改`,
   },
 
   /* ============================================================
-   * 进阶区 · 低难度：格式化字符串
+   * 新手 +：格式化字符串（主线一脉相承的近亲）
    * ============================================================ */
   {
     id: 'sb-format-string',
-    title: '格式化字符串泄露 · 中等难度',
-    difficulty: 'basic',
-    difficultyLabel: '低难度',
+    title: '格式化字符串泄露 · 新手 +',
+    difficulty: 'beginner-plus',
+    difficultyLabel: '新手 +',
+    terms: ['fmtstr', 'printf', 'format-spec', 'stack', 'info-leak', 'arbitrary-rw', 'offset', 'fortify'],
     vulnType: 'CWE-134 格式化字符串',
     cwe: 'CWE-134',
     minutes: 12,
     brief:
-      '日志服务器把用户输入原样塞进日志。测试时有人输了一串 %x，屏幕上居然打出了内存地址。这个漏洞危险在你根本想不到 —— printf 的第一个参数不是内容，是指令。',
+      '日志服务器把用户输入原样写入日志。测试时有人输入一串 %x，屏幕输出了内存地址。该漏洞的关键在于 printf 的第一个参数是格式指令而非纯内容。',
     objective:
       '通过 4 个阶段掌握格式化字符串漏洞：现象识别 → 源码定位 → 偏移探测 → 修复与编译期防护。',
     stages: [
@@ -607,8 +613,8 @@ log_server.c:7:5: error: format not a string literal [-Werror=format-security]
       '静态扫描工具（CodeQL、Coverity）可自动检测 CWE-134',
     ],
     relatedSteps: [
-      { label: '教学 · 静态分析', href: '/learn/step2' },
-      { label: '教学 · 路径探索', href: '/learn/step3' },
+      { label: '复习 L2 · 找到 call', href: '/learn/l2' },
+      { label: '复习 L4 · 两道关', href: '/learn/l4' },
     ],
   },
 
@@ -620,6 +626,7 @@ log_server.c:7:5: error: format not a string literal [-Werror=format-security]
     title: 'UAF 虚表劫持 · 中高难度',
     difficulty: 'intermediate',
     difficultyLabel: '中难度',
+    terms: ['uaf', 'stack', 'arbitrary-rw'],
     vulnType: 'CWE-416 释放后重用',
     cwe: 'CWE-416',
     minutes: 15,
@@ -862,9 +869,9 @@ Breakpoint 1, new_message (msg="sh") at chat_server.cpp:31
       '依赖现代 glibc 的堆加固（tcache key 检测、分配随机化）',
     ],
     relatedSteps: [
-      { label: '教学 · 静态分析', href: '/learn/step2' },
-      { label: '教学 · 路径探索', href: '/learn/step3' },
-      { label: '教学 · 防护策略', href: '/learn/step4' },
+      { label: '复习 L2 · 找到 call', href: '/learn/l2' },
+      { label: '复习 L4 · 两道关', href: '/learn/l4' },
+      { label: '复习 L6 · Canary 锁', href: '/learn/l6' },
     ],
   },
 
@@ -876,6 +883,7 @@ Breakpoint 1, new_message (msg="sh") at chat_server.cpp:31
     title: 'NX 防护下的 ROP · 高难度',
     difficulty: 'advanced',
     difficultyLabel: '高难度',
+    terms: ['rop', 'nx', 'offset'],
     vulnType: 'CWE-121 栈溢出 + ROP 绕过 NX',
     cwe: 'CWE-121',
     minutes: 18,
@@ -1156,8 +1164,8 @@ $ checksec --file=victim_fixed
       '高危场景叠加 CFI / Shadow Stack（Intel CET、ARM PAC）',
     ],
     relatedSteps: [
-      { label: '教学 · 路径探索', href: '/learn/step3' },
-      { label: '教学 · 防护策略', href: '/learn/step4' },
+      { label: '复习 L4 · 两道关', href: '/learn/l4' },
+      { label: '复习 L6 · Canary 锁', href: '/learn/l6' },
       { label: '案例 · 栈溢出详解', href: '/cases/stack-buffer-overflow' },
     ],
   },
@@ -1168,9 +1176,13 @@ export function getSandboxById(id: string): SandboxCase | undefined {
 }
 
 export function getBeginnerSandboxes(): SandboxCase[] {
-  return sandboxCases.filter((c) => c.difficulty === 'beginner');
+  return sandboxCases.filter(
+    (c) => c.difficulty === 'beginner' || c.difficulty === 'beginner-plus'
+  );
 }
 
 export function getAdvancedSandboxes(): SandboxCase[] {
-  return sandboxCases.filter((c) => c.difficulty !== 'beginner');
+  return sandboxCases.filter(
+    (c) => c.difficulty === 'intermediate' || c.difficulty === 'advanced'
+  );
 }

@@ -1,453 +1,125 @@
 import Link from 'next/link';
-import CodeBlock from '@/components/CodeBlock';
+import SourceBadge from '@/components/SourceBadge';
+
+/**
+ * Mutagen · 设计构想（本次课程作业未实现）。
+ *
+ * T04 / P0-3：整页重写为 1 屏，只保留构想与边界说明。
+ * 页面里不再出现版本号、安装命令、下载入口、终端回放、支持度统计或后续版本计划。
+ * 全部改用三态语言说明边界：本页只有「规划中」，没有任何可下载、可运行的东西。
+ */
 
 export const metadata = {
-  title: 'Mutagen · 一键式自动化漏洞发现与修复 | BinInsight',
+  title: 'Mutagen · 设计构想（本次未实现） | BinInsight',
   description:
-    'Mutagen 是基于 AI 的 fuzzer 和自动程序修复引擎，支持多语言、无源码场景，一键完成漏洞发现与修复。',
+    'Mutagen 是一个「一键式自动化漏洞发现与修复」的设计构想，本次并未实现；本页只记录设想与边界，不提供任何下载或运行入口。',
 };
 
-const supportedTargets = [
-  { name: 'ELF 可执行文件', desc: 'Linux 平台二进制，通过 Ghidra 反编译分析' },
-  { name: 'C/C++ 源码', desc: '直接分析源代码，支持 GCC/Clang 编译链' },
-  { name: 'Python 脚本', desc: 'AST 级别的静态分析 + 动态 fuzzing' },
-];
-
-const vulnCategories = [
-  { cwe: 'CWE-120', name: '缓冲区溢出', status: 'supported' },
-  { cwe: 'CWE-416', name: 'Use-After-Free', status: 'supported' },
-  { cwe: 'CWE-78', name: '命令注入', status: 'supported' },
-  { cwe: 'CWE-134', name: '格式化字符串', status: 'supported' },
-  { cwe: 'CWE-190', name: '整数溢出', status: 'supported' },
-  { cwe: 'CWE-476', name: '空指针解引用', status: 'supported' },
-  { cwe: 'CWE-20', name: '输入验证不当', status: 'partial' },
-  { cwe: 'CWE-119', name: '内存越界访问', status: 'partial' },
-];
-
-const features = [
+const ideas = [
   {
-    title: 'AI 驱动的 Fuzzer + 自动修复',
-    desc: '结合符号执行、覆盖率引导 fuzzing 和大语言模型，自动发现漏洞并生成修复建议，减少人工分析成本。',
+    title: '设想：自动发现 + 自动修复',
+    body: '原本设想把「扫描 → 生成补丁 → 验证修复」串成一条命令，减少人工分析成本。',
   },
   {
-    title: '多 Agent 协作架构',
-    desc: '分析 Agent、Fuzzing Agent、修复 Agent、验证 Agent 分工协作，模拟专业安全团队的工作流程，互相校验提高准确率。',
+    title: '设想：多个分析角色分工',
+    body: '原本设想让扫描、验证等角色互相校验，提高准确率。',
   },
   {
-    title: '多语言支持',
-    desc: '支持 C/C++、Rust、Python、Go 五种主流语言，源码和二进制场景均可分析，适配不同的项目技术栈。',
-  },
-  {
-    title: '无源码场景支持',
-    desc: '通过 Ghidra 无头模式反编译二进制文件，将反编译结果提升为可分析的中间表示，实现对闭源软件的漏洞检测。',
+    title: '设想：覆盖多种语言与无源码场景',
+    body: '原本设想同时处理源码与二进制，并支持没有源码的目标。',
   },
 ];
 
-const limitations = [
-  {
-    title: '复杂 C++ 虚函数分析受限',
-    desc: '多继承、虚继承、模板元编程等复杂 C++ 特性可能导致反编译不完整，影响分析准确率。',
-  },
-  {
-    title: '混淆代码效果下降',
-    desc: '经过 OLLVM、VMProtect 等混淆器处理的代码，反编译质量下降明显，漏洞检测率会降低。',
-  },
-  {
-    title: '多线程并发漏洞',
-    desc: '竞态条件、死锁等并发类漏洞当前检测能力有限，主要关注单线程执行路径上的内存安全问题。',
-  },
-  {
-    title: '逻辑业务漏洞',
-    desc: '权限绕过、业务逻辑缺陷等需要理解业务语义的漏洞不在当前检测范围内。',
-  },
+const notDone = [
+  '没有可执行的 Mutagen 程序，也没有版本号或发布包',
+  '没有自动化扫描、fuzzing 或补丁生成',
+  '没有 CWE 支持度表，也没有任何漏洞统计数字',
+  '没有二进制重写引擎，没有补丁等价性校验',
+  '不需要 Docker、Ghidra 或任何 API Key —— 因为本页没有东西要跑',
 ];
-
-const envReqs = [
-  { name: 'Ghidra 11.x + JDK 17+', desc: '二进制反编译引擎，用于无源码场景分析', meta: '必需 · 二进制分析场景' },
-  { name: 'Docker', desc: 'Fuzzing 沙箱环境，隔离漏洞验证过程', meta: '必需' },
-  { name: 'LLM API Key', desc: '启用智能补丁生成和复杂路径分析', meta: '可选 · 推荐配置' },
-];
-
-const tutorials = [
-  {
-    title: '安装（Docker 方式）',
-    desc: '推荐使用 Docker 镜像，无需手动配置 Ghidra 和依赖环境。',
-    code: `# 拉取 Mutagen Docker 镜像
-docker pull bininsight/mutagen:latest
-
-# 验证安装
-docker run --rm bininsight/mutagen:latest mutagen --version
-# Mutagen v1.2.0
-
-# 创建别名方便使用
-alias mutagen='docker run --rm -v $(pwd):/workspace -w /workspace bininsight/mutagen:latest mutagen'`,
-  },
-  {
-    title: '配置环境变量',
-    desc: '配置 LLM API Key 以启用智能分析和补丁生成功能（可选）。',
-    code: `# 创建配置文件
-cat > ~/.mutagen.env << 'EOF'
-# LLM 配置（可选，用于智能补丁生成）
-LLM_PROVIDER=openai
-LLM_API_KEY=sk-your-api-key-here
-LLM_MODEL=gpt-4o
-
-# Ghidra 配置（源码分析可跳过）
-GHIDRA_INSTALL_DIR=/opt/ghidra
-
-# 并行度配置
-MAX_WORKERS=4
-EOF
-
-# Docker 方式传入环境变量
-alias mutagen='docker run --rm \\
-  -v $(pwd):/workspace -w /workspace \\
-  --env-file ~/.mutagen.env \\
-  bininsight/mutagen:latest mutagen'`,
-  },
-  {
-    title: '运行第一个示例',
-    desc: '对目标程序执行完整的漏洞扫描和自动修复。',
-    code: `# 扫描二进制文件（自动调用 Ghidra 反编译）
-mutagen scan ./target_binary --output report.html
-
-# 扫描源码目录
-mutagen scan ./src --lang c --output report.html
-
-# 扫描并自动尝试修复
-mutagen scan ./target_binary --fix --output report.html
-
-# 快速扫描（减少 fuzzing 迭代，适合初步评估）
-mutagen scan ./target_binary --fast --output report.html
-
-# 指定目标函数缩小范围
-mutagen scan ./target_binary --target process_data --output report.html`,
-  },
-];
-
-const faqs = [
-  {
-    q: '安装时提示找不到 Ghidra，怎么办？',
-    a: '请确保已安装 Ghidra 11.x 并配置了 GHIDRA_INSTALL_DIR 环境变量，指向 Ghidra 的安装目录（包含 ghidraRun 脚本的目录）。Docker 方式无需手动安装 Ghidra，镜像已内置。',
-  },
-  {
-    q: '必须配置 LLM API Key 吗？',
-    a: '不是必须的。Mutagen 有内置的符号执行和模式匹配引擎，不配置 LLM 也能完成基础漏洞检测。配置 LLM API Key 后可以启用更智能的补丁生成和复杂路径分析能力。',
-  },
-  {
-    q: '运行时报错 "Docker daemon not running"？',
-    a: 'Mutagen 的 fuzzing 和沙箱功能依赖 Docker。请确保 Docker Desktop（Windows/macOS）或 Docker 服务（Linux）已启动。可以运行 docker ps 命令检查 Docker 是否正常运行。',
-  },
-  {
-    q: '支持 Windows PE 文件吗？',
-    a: '当前版本主要支持 Linux ELF 格式。Windows PE 支持在开发路线图中，预计 v2.0 版本推出。目前你可以在 WSL2 环境中运行 Mutagen 分析 Linux 二进制。',
-  },
-  {
-    q: '扫描速度很慢，如何优化？',
-    a: '可以通过 --fast 模式减少 fuzzing 迭代次数；使用 --target 指定具体函数缩小分析范围；增加 --workers 并行度。首次扫描会建立 Ghidra 项目缓存，后续扫描会更快。',
-  },
-  {
-    q: '生成的补丁可以直接用于生产环境吗？',
-    a: '不建议直接用于生产。Mutagen 生成的补丁是自动修复的建议方案，需要人工审查验证。自动修复可能引入新的逻辑问题或性能问题。请在测试环境充分验证后再考虑部署。',
-  },
-];
-
-function TerminalMock() {
-  return (
-    <div className="u-panel overflow-hidden">
-      <div className="px-4 py-2.5 border-b border-[var(--border)] bg-[var(--bg-code-header)]">
-        <span className="font-mono text-[11px] text-[var(--text-muted)]">
-          mutagen scan --report
-        </span>
-      </div>
-      <div className="p-5 font-mono text-[12px] leading-[1.9]">
-        <div className="text-[var(--text-soft)]">[INFO] Loading target: ./vuln_program</div>
-        <div className="text-[var(--text-soft)]">[INFO] Ghidra decompilation... 100%</div>
-        <div className="text-brand-400">[SCAN] Analyzing 42 functions...</div>
-        <div className="text-accent-orange">[WARN] CWE-120 detected at main+0x42</div>
-        <div className="text-accent-red">[CRIT] CWE-416 detected at process_data+0x98</div>
-        <div className="text-accent-green">[FIX] Generating patch for CWE-120...</div>
-        <div className="text-accent-green">[FIX] Patch verified: PASS</div>
-        <div className="text-accent-green">[FIX] Generating patch for CWE-416...</div>
-        <div className="text-accent-orange">[WARN] CWE-416 patch: manual review required</div>
-        <div className="text-[var(--text-muted)] my-1">{'─'.repeat(42)}</div>
-        <div className="text-[var(--text)]">
-          Results: <span className="text-accent-red">2 vulnerabilities</span> found
-        </div>
-        <div className="text-[var(--text)]">
-          Patches: <span className="text-accent-green">1 auto-fixed</span>, 1 review required
-        </div>
-        <div className="text-[var(--text-soft)]">Report saved to ./mutagen_report.html</div>
-      </div>
-    </div>
-  );
-}
 
 export default function MutagenPage() {
   return (
     <div>
-      {/* Hero */}
       <section className="border-b border-[var(--border)]">
-        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 pt-8 pb-12">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 pt-8 pb-12">
           <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)] mb-8">
             <Link href="/" className="hover:text-[var(--text)] transition-colors">首页</Link>
             <span className="text-[var(--border-soft)]">/</span>
-            <Link href="/tools" className="hover:text-[var(--text)] transition-colors">工具下载</Link>
+            <Link href="/tools" className="hover:text-[var(--text)] transition-colors">工具</Link>
             <span className="text-[var(--border-soft)]">/</span>
             <span className="text-[var(--brand-500)]">Mutagen</span>
           </div>
 
-          <div className="flex items-center gap-3 mb-5">
-            <h1 className="u-display text-4xl md:text-5xl">Mutagen</h1>
-            <span className="u-tag">一键式</span>
+          <div className="flex items-center gap-3 flex-wrap mb-4">
+            <h1 className="u-display text-3xl md:text-[40px]">Mutagen</h1>
+            <SourceBadge state="planned" showNote />
           </div>
-          <p className="font-mono text-[13px] text-[var(--brand-500)] mb-4">
-            AI-DRIVEN AUTOMATED VULNERABILITY DISCOVERY &amp; REPAIR
-          </p>
-          <p className="text-[15px] md:text-base text-[var(--text-muted)] max-w-2xl leading-relaxed mb-8">
-            一条命令跑完「发现漏洞 → 生成补丁 → 验证修复」全流程。
-            基于 AI fuzzer 和多 agent 协作架构，支持 C/C++、Rust、Python、Go，
-            可通过 Ghidra 无头模式处理无源码二进制文件。
+
+          <p className="text-[15px] md:text-base text-[var(--text-muted)] leading-relaxed mb-7">
+            这是一个<strong className="text-[var(--text)]">设计构想</strong>：
+            希望有一天能一条命令完成漏洞发现与修复。
+            <strong className="text-[var(--text)]">本次没有实现它</strong> ——
+            没有可下载的程序，没有可运行的命令，也没有任何分析结果可以展示。
           </p>
 
-          <div className="flex flex-wrap gap-3">
-            <a
-              href="https://github.com/bininsight/mutagen/releases"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="u-btn u-btn-primary"
-            >
-              GitHub Release
-              <span className="font-mono" aria-hidden="true">→</span>
-            </a>
-            <a
-              href="https://hub.docker.com/r/bininsight/mutagen"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="u-btn u-btn-ghost"
-            >
-              Docker Pull
-            </a>
+          <div className="u-warning-card mb-8">
+            请按「规划中」理解本页：下面列出的都是<strong>设想</strong>，不是已做好的功能。
+            老师若问「跑一下 Mutagen」，与页面一致的回答是：本次没有实现，跑不出来，也不提供下载。
           </div>
-        </div>
-      </section>
 
-      {/* 工具介绍 */}
-      <section className="max-w-[1280px] mx-auto px-5 sm:px-8 py-16 md:py-20">
-        <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-start">
-          <div>
-            <p className="u-eyebrow mb-4">Overview</p>
-            <h2 className="u-display text-2xl md:text-3xl mb-8">工具介绍</h2>
-            <div className="space-y-7">
-              {features.map((f) => (
-                <div key={f.title} className="grid grid-cols-[32px_1fr] gap-4">
+          <div className="u-panel p-5 md:p-6 mb-8">
+            <p className="u-eyebrow mb-1.5">IDEAS · 构想</p>
+            <h2 className="text-lg font-semibold tracking-tight mb-5">当初想做成什么样</h2>
+            <div className="space-y-5">
+              {ideas.map((item) => (
+                <div key={item.title} className="grid grid-cols-[auto_1fr] gap-3">
                   <span className="u-flow-tick" aria-hidden="true" />
                   <div>
-                    <h3 className="text-[15px] font-semibold mb-1.5">{f.title}</h3>
-                    <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">{f.desc}</p>
+                    <h3 className="text-[14px] font-semibold mb-1">{item.title}</h3>
+                    <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">{item.body}</p>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-          <TerminalMock />
-        </div>
-      </section>
-
-      {/* 能力与边界 */}
-      <section className="border-y border-[var(--border)] bg-[var(--bg-soft)]">
-        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 py-16 md:py-20">
-          <p className="u-eyebrow mb-4">Scope</p>
-          <h2 className="u-display text-2xl md:text-3xl mb-10">能力与边界</h2>
-
-          {/* 支持目标：行列表 */}
-          <div className="u-panel mb-px">
-            <div className="px-6 py-3 border-b border-[var(--border)]">
-              <span className="font-mono text-[11px] tracking-wider text-[var(--text-muted)]">
-                支持的分析目标
-              </span>
-            </div>
-            {supportedTargets.map((t) => (
-              <div
-                key={t.name}
-                className="grid md:grid-cols-[220px_1fr] gap-1 md:gap-8 px-6 py-4 border-b border-[var(--border)] last:border-b-0"
-              >
-                <span className="text-[14px] font-medium">{t.name}</span>
-                <span className="text-[13px] text-[var(--text-muted)]">{t.desc}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-px bg-[var(--border)] border border-[var(--border)] border-t-0 rounded-b-lg overflow-hidden">
-            {/* CWE 表 */}
-            <div className="bg-[var(--bg-card)] p-6 md:p-7">
-              <h3 className="font-mono text-[11px] tracking-wider mb-4 text-accent-green">
-                检测的漏洞类别
-              </h3>
-              <div>
-                {vulnCategories.map((v) => (
-                  <div
-                    key={v.cwe}
-                    className="flex items-center justify-between py-2.5 border-b border-[var(--border)] last:border-0"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="u-tag !text-brand-400">{v.cwe}</span>
-                      <span className="text-[13px]">{v.name}</span>
-                    </div>
-                    <span
-                      className={`font-mono text-[11px] ${
-                        v.status === 'supported' ? 'text-accent-green' : 'text-accent-orange'
-                      }`}
-                    >
-                      {v.status === 'supported' ? '完整支持' : '部分支持'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 局限 */}
-            <div className="bg-[var(--bg-card)] p-6 md:p-7">
-              <h3 className="font-mono text-[11px] tracking-wider mb-4 text-accent-red">
-                已知局限
-              </h3>
-              <div className="space-y-4">
-                {limitations.map((l) => (
-                  <div key={l.title}>
-                    <div className="text-[13px] font-medium mb-1">{l.title}</div>
-                    <p className="text-[12.5px] text-[var(--text-muted)] leading-relaxed">{l.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 环境要求 */}
-      <section className="max-w-[1280px] mx-auto px-5 sm:px-8 py-16 md:py-20">
-        <p className="u-eyebrow mb-4">Environment</p>
-        <h2 className="u-display text-2xl md:text-3xl mb-8">环境要求</h2>
-        <div className="border-t border-[var(--border)]">
-          {envReqs.map((req) => (
-            <div
-              key={req.name}
-              className="grid md:grid-cols-[260px_1fr_200px] gap-2 md:gap-8 py-5 border-b border-[var(--border)] items-baseline"
-            >
-              <span className="text-[14px] font-semibold">{req.name}</span>
-              <span className="text-[13px] text-[var(--text-muted)]">{req.desc}</span>
-              <span className="font-mono text-[11px] text-[var(--text-soft)] md:text-right">
-                {req.meta}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 使用教程 */}
-      <section className="border-y border-[var(--border)] bg-[var(--bg-soft)]">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 py-16 md:py-20">
-          <p className="u-eyebrow mb-4">Walkthrough</p>
-          <h2 className="u-display text-2xl md:text-3xl mb-10">使用教程</h2>
-
-          <div className="space-y-10">
-            {tutorials.map((t) => (
-              <div key={t.title}>
-                <div className="flex items-baseline gap-4 mb-2">
-                  <span className="u-flow-tick" aria-hidden="true" />
-                  <h3 className="text-[16px] font-semibold">{t.title}</h3>
-                </div>
-                <p className="text-[13px] text-[var(--text-muted)] mb-4 pl-8">{t.desc}</p>
-                <div className="pl-8">
-                  <CodeBlock code={t.code} language="bash" title="终端" showLineNumbers={false} />
-                </div>
-              </div>
-            ))}
-
-            {/* 报告概览 */}
-            <div>
-              <div className="flex items-baseline gap-4 mb-2">
-                <span className="u-flow-tick" aria-hidden="true" />
-                <h3 className="text-[16px] font-semibold">查看报告</h3>
-              </div>
-              <p className="text-[13px] text-[var(--text-muted)] mb-4 pl-8">
-                扫描完成后会生成 HTML 格式的报告，包含漏洞详情、代码位置、修复建议和验证结果。
-              </p>
-              <div className="pl-8">
-                <div className="u-panel p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-[13px] font-semibold">报告内容概览</span>
-                    <span className="font-mono text-[11px] text-[var(--text-soft)]">report.html</span>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-[var(--border)] border border-[var(--border)] rounded-md">
-                    {[
-                      { n: '2', label: '高危漏洞', color: 'text-accent-red' },
-                      { n: '3', label: '中危漏洞', color: 'text-accent-orange' },
-                      { n: '3', label: '已自动修复', color: 'text-accent-green' },
-                      { n: '42', label: '分析函数数', color: 'text-brand-400' },
-                    ].map((s) => (
-                      <div key={s.label} className="p-4 text-center">
-                        <div className={`text-2xl font-semibold ${s.color}`}>{s.n}</div>
-                        <div className="font-mono text-[10px] tracking-wider text-[var(--text-soft)] mt-1">
-                          {s.label}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="max-w-4xl mx-auto px-5 sm:px-8 py-16 md:py-20">
-        <p className="u-eyebrow mb-4">FAQ</p>
-        <h2 className="u-display text-2xl md:text-3xl mb-8">常见问题</h2>
-        <div className="border-t border-[var(--border)]">
-          {faqs.map((faq, idx) => (
-            <details key={idx} className="border-b border-[var(--border)] group">
-              <summary className="flex items-baseline gap-4 py-5 cursor-pointer list-none">
-                <span className="u-flow-tick u-flow-tick--inline" aria-hidden="true" />
-                <span className="flex-1 text-[14.5px] font-medium group-open:text-[var(--brand-500)] transition-colors">
-                  {faq.q}
-                </span>
-                <span className="font-mono text-[var(--text-soft)] text-xs group-open:rotate-45 transition-transform">
-                  +
-                </span>
-              </summary>
-              <p className="pb-5 pl-9 pr-6 text-[13px] text-[var(--text-muted)] leading-relaxed">
-                {faq.a}
-              </p>
-            </details>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="border-t border-[var(--border)]">
-        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 py-14 md:py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <h2 className="u-display text-2xl md:text-3xl mb-2">开始使用 Mutagen</h2>
-            <p className="text-sm text-[var(--text-muted)]">
-              一条命令，自动化发现并修复二进制和源代码中的漏洞。
+            <p className="mt-5 pt-4 border-t border-[var(--border)] text-[12px] text-[var(--text-soft)] leading-relaxed">
+              以上每一条都需要独立的子系统与大量工程工作，远超一次教学演示能讲清、能演示的范围，
+              因此只保留为构想，不进入演示动线。
             </p>
           </div>
-          <div className="flex flex-wrap gap-3 flex-shrink-0">
-            <a
-              href="https://github.com/bininsight/mutagen"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="u-btn u-btn-primary"
-            >
-              访问 GitHub
-              <span className="font-mono" aria-hidden="true">→</span>
-            </a>
-            <Link href="/tools" className="u-btn u-btn-ghost">
-              <span className="font-mono" aria-hidden="true">←</span>
-              返回工具列表
-            </Link>
+
+          <div className="u-panel p-5 md:p-6 mb-8">
+            <p className="u-eyebrow mb-1.5">BOUNDARY · 边界</p>
+            <h2 className="text-lg font-semibold tracking-tight mb-4">本次明确没有的东西</h2>
+            <ul className="space-y-2.5">
+              {notDone.map((line) => (
+                <li key={line} className="text-[13px] text-[var(--text-muted)] leading-relaxed flex gap-2.5">
+                  <span className="font-mono text-[var(--text-soft)]" aria-hidden="true">—</span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <p className="text-[13px] text-[var(--text-muted)] leading-relaxed">
+              想看<strong className="text-[var(--text)]">这次真正做了什么</strong>：
+              Dilipa 侧只做只读的 ELF 分析、反汇编、危险调用名单与 JSON 报告，以及网页上的变更预览；
+              主线 8 级才是本次可以完整走完的演示。
+            </p>
+            <div className="flex flex-wrap gap-2.5">
+              <Link href="/tools/dilipa" className="u-btn u-btn-primary">
+                看 Dilipa 的只读分析 + 变更预览
+                <span className="font-mono" aria-hidden="true">→</span>
+              </Link>
+              <Link href="/learn/l0" className="u-btn u-btn-ghost">
+                回到 8 级主线
+              </Link>
+              <Link href="/tools" className="u-btn u-btn-ghost">
+                <span className="font-mono" aria-hidden="true">←</span>
+                返回工具
+              </Link>
+            </div>
           </div>
         </div>
       </section>

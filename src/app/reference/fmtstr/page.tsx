@@ -8,7 +8,7 @@ import { getVulnNode, vulnPath } from '@/data/reference';
 const node = getVulnNode('fmtstr')!;
 
 export const metadata = {
-  title: '格式化字符串 · 逆向工作台',
+  title: '格式化字符串 · 深度工作台',
   description: '四段式学习格式化字符串漏洞：格式串约定 · %p 泄露 libc · %n 写 GOT · 防御审计口诀。',
 };
 
@@ -206,7 +206,7 @@ export default function FmtstrPage() {
         <div className="flex items-center gap-1.5 font-mono text-[11px] tracking-wider text-[var(--text-soft)]">
           <Link href="/" className="hover:text-[var(--text)]">首页</Link>
           <span>/</span>
-          <Link href="/reference" className="hover:text-[var(--text)]">逆向工作台</Link>
+          <Link href="/reference" className="hover:text-[var(--text)]">深度工作台</Link>
           <span>/</span>
           <span className="text-[var(--text-muted)]">格式化字符串</span>
         </div>

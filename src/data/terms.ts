@@ -48,8 +48,7 @@ export const TERMS_SECTIONS: TermsSection[] = [
     en: 'THIRD-PARTY NOTICE',
     content: [
       '本平台的工具和教学内容依赖或引用了以下第三方开源软件，它们各自拥有独立的开源许可证：',
-      '· Ghidra：由美国国家安全局（NSA）开发的软件逆向工程工具，遵循 Apache License 2.0。',
-      '· Docker：容器化平台，遵循 Apache License 2.0。',
+      '· pyelftools / capstone：课前生成演示报告时用到的 ELF 解析与反汇编库，遵循各自开源许可证；本站未把它们打包成可下载的安装程序。',
       '· Prism.js：代码语法高亮库，遵循 MIT License。',
       '· Next.js、React 及相关前端依赖：遵循各自的开源许可证。',
       '· three.js：三维渲染库，遵循 MIT License。',
@@ -61,10 +60,9 @@ export const TERMS_SECTIONS: TermsSection[] = [
     title: '联系方式',
     en: 'CONTACT',
     content: [
-      '如您对本使用条款有任何疑问、建议或需要进一步澄清，或发现任何可能违反本条款的行为，请通过以下方式联系我们：',
-      '· 邮箱：legal@bininsight.example.com',
-      '· GitHub Issues：github.com/bininsight/bininsight/issues',
-      '我们重视每一位用户的反馈，并将在合理时间内回复您的来信。',
+      '本站为教学演示用途，没有对外运营团队，也不设置对外联系邮箱。',
+      '如对演示内容或条款文字有疑问，请在课堂上直接向任课教师提问，或查阅仓库内 docs/03-演示自检清单.md 的「老师可能追问的 3 问」。',
+      '页面里出现的任何工具名称，请以对应页面标注的「真实输出 / 演示样例 / 规划中」状态为准，不要把规划中的构想当成可下载的产品。',
     ],
   },
 ];
