@@ -10,7 +10,7 @@ import SourceBadge from '@/components/SourceBadge';
 export const metadata: Metadata = {
   title: '漏洞手册 | BinInsight',
   description:
-    '收录漏洞类型与安全方法论的手册：可按名称、别名或拼音搜索，术语可点开看解释。目前收录漏洞分类概览、注入类漏洞、客户端攻击、认证会话、访问控制、文件资源与服务端请求解析，均为预置演示样例。',
+    '收录漏洞类型与安全方法论的手册：可按名称、别名或拼音搜索，术语可点开看解释。目前收录漏洞分类概览、注入类漏洞、客户端攻击、认证会话、访问控制、文件资源、服务端请求解析与逻辑业务，均为预置演示样例。',
 };
 
 export default function LibraryPage() {
@@ -31,7 +31,7 @@ export default function LibraryPage() {
               <h1 className="u-display text-3xl md:text-[42px] mb-4">漏洞手册</h1>
               <p className="text-[15px] text-[var(--text-muted)] max-w-2xl leading-relaxed">
                 收录漏洞类型与安全方法论的手册，可按名称、别名或拼音搜索，术语可点开看解释。
-                目前收录：漏洞分类概览、注入类漏洞、客户端攻击、认证会话、访问控制、文件资源、服务端请求解析，均为预置演示样例。
+                目前收录：漏洞分类概览、注入类漏洞、客户端攻击、认证会话、访问控制、文件资源、服务端请求解析、逻辑业务，均为预置演示样例。
               </p>
               <div className="flex flex-wrap gap-3 mt-6">
                 <Link href="/library/ch0-framework" className="u-btn u-btn-ghost">
